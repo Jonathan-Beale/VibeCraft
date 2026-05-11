@@ -228,6 +228,8 @@ public class ClaudeCommand implements CommandExecutor {
             player.sendMessage(PREFIX.append(
                     Component.text("Using: " + workDir.getName(), NamedTextColor.GRAY)));
         }
+        player.sendMessage(Component.text("[You] ", NamedTextColor.GREEN)
+                .append(Component.text(message, NamedTextColor.WHITE)));
         player.sendMessage(PREFIX.append(Component.text("Thinking...", NamedTextColor.GRAY)));
 
         File logFile = openLogFile(player.getName());
