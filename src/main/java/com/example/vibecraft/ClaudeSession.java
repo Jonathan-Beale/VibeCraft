@@ -210,20 +210,22 @@ public class ClaudeSession {
 
     private Component formatToolCall(String name, JsonObject input) {
         String detail = switch (name) {
-            case "Read"   -> shortPath(getString(input, "file_path"));
-            case "Write"  -> shortPath(getString(input, "file_path"));
-            case "Edit"   -> shortPath(getString(input, "file_path"));
-            case "Bash"   -> truncate(getString(input, "command"), 80);
-            case "Glob"   -> getString(input, "pattern");
-            case "Grep"   -> getString(input, "pattern");
-            default       -> "";
+            case "Read"       -> shortPath(getString(input, "file_path"));
+            case "Write"      -> shortPath(getString(input, "file_path"));
+            case "Edit"       -> shortPath(getString(input, "file_path"));
+            case "Bash",
+                 "PowerShell" -> truncate(getString(input, "command"), 80);
+            case "Glob"       -> getString(input, "pattern");
+            case "Grep"       -> getString(input, "pattern");
+            default           -> "";
         };
 
         NamedTextColor labelColor = switch (name) {
-            case "Write" -> NamedTextColor.GREEN;
-            case "Edit"  -> NamedTextColor.YELLOW;
-            case "Bash"  -> NamedTextColor.GOLD;
-            default      -> NamedTextColor.GRAY;
+            case "Write"      -> NamedTextColor.GREEN;
+            case "Edit"       -> NamedTextColor.YELLOW;
+            case "Bash",
+                 "PowerShell" -> NamedTextColor.GOLD;
+            default           -> NamedTextColor.GRAY;
         };
 
         Component label = Component.text("[" + name + "]", labelColor)
