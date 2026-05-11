@@ -7,6 +7,7 @@ import java.io.File;
 public class VibeCraft extends JavaPlugin {
 
     private PlayerDataStore playerData;
+    private BuildScriptManager buildScripts;
     private ClaudeCommand claudeCommand;
     private String claudePath;
     private String serverPluginsDir;
@@ -29,7 +30,15 @@ public class VibeCraft extends JavaPlugin {
                 new File(getDataFolder(), "../../VibeCraft").getAbsolutePath()));
         workspaceDir = selfDir.getParentFile();
 
+        File serverDir = new File(getConfig().getString("server-dir",
+                new File(getDataFolder(), "../../server").getAbsolutePath()));
+
         playerData = new PlayerDataStore(getDataFolder());
+        buildScripts = new BuildScriptManager(serverDir, serverPluginsDir);
+
+        // Regenerate build scripts from all currently configured repos
+        buildScripts.regenerate(playerData.getAllConfiguredPaths());
+
         claudeCommand = new ClaudeCommand(this);
         getCommand("claude").setExecutor(claudeCommand);
 
@@ -45,6 +54,7 @@ public class VibeCraft extends JavaPlugin {
     }
 
     public PlayerDataStore getPlayerData() { return playerData; }
+    public BuildScriptManager getBuildScripts() { return buildScripts; }
     public String getClaudePath() { return claudePath; }
     public String getServerPluginsDir() { return serverPluginsDir; }
     public String getRestartFlagPath() { return restartFlagPath; }

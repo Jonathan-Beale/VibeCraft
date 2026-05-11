@@ -9,3 +9,6 @@ restart-flag-path: "C:\\Users\\jonat\\minecraft\\server\\restart.flag"
 
 # Path to the VibeCraft project directory itself (used for workspace scanning and project scaffolding).
 vibecraft-dir: "C:\\Users\\jonat\\minecraft\\VibeCraft"
+
+# Root of the Minecraft server (build scripts are placed here).
+server-dir: "C:\\Users\\jonat\\minecraft\\server"

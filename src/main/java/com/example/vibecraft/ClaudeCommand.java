@@ -145,6 +145,8 @@ public class ClaudeCommand implements CommandExecutor {
     public void setRepo(Player player, File dir) {
         plugin.getPlayerData().setDefaultPath(player.getUniqueId(), dir.getAbsolutePath());
         sessions.keySet().removeIf(k -> k.startsWith(player.getUniqueId().toString()));
+        plugin.getBuildScripts().addPlugin(dir);
+        plugin.getBuildScripts().regenerate(plugin.getPlayerData().getAllConfiguredPaths());
         player.sendMessage(PREFIX.append(
                 Component.text("Default repo set to: " + dir.getAbsolutePath(), NamedTextColor.GREEN)));
 
@@ -216,7 +218,10 @@ public class ClaudeCommand implements CommandExecutor {
             boolean saved = plugin.getPlayerData()
                     .getHasSession(player.getUniqueId(), workDir.getAbsolutePath());
             return new ClaudeSession(workDir, plugin.getClaudePath(),
-                    plugin.getServerPluginsDir(), plugin.getRestartFlagPath(), saved);
+                    plugin.getServerPluginsDir(), plugin.getRestartFlagPath(),
+                    plugin.getBuildScripts().getServerDir(),
+                    plugin.getPlayerData().getAllConfiguredPaths(),
+                    saved);
         });
 
         if (isOverride) {

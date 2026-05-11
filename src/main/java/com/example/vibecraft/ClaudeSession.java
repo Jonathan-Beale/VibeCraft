@@ -25,6 +25,8 @@ public class ClaudeSession {
     private final String claudePath;
     private final String serverPluginsDir;
     private final String restartFlagPath;
+    private final File serverDir;
+    private final List<String> allPluginPaths;
     private boolean hasSession;
 
     // Maps tool_use_id -> tool_name so tool_result events know what produced them
@@ -32,11 +34,14 @@ public class ClaudeSession {
 
     public ClaudeSession(File workingDir, String claudePath,
                          String serverPluginsDir, String restartFlagPath,
+                         File serverDir, List<String> allPluginPaths,
                          boolean hasSession) {
         this.workingDir = workingDir;
         this.claudePath = claudePath;
         this.serverPluginsDir = serverPluginsDir;
         this.restartFlagPath = restartFlagPath;
+        this.serverDir = serverDir;
+        this.allPluginPaths = allPluginPaths;
         this.hasSession = hasSession;
     }
 
@@ -44,15 +49,29 @@ public class ClaudeSession {
     public boolean isHasSession() { return hasSession; }
 
     private String buildSystemPrompt() {
-        return "You are a Minecraft Paper plugin developer assistant. " +
-               "Working directory: " + workingDir.getAbsolutePath() + ". " +
-               "You have explicit permission to: " +
-               "(1) Edit any source file in the project. " +
-               "(2) Build the plugin: run `cmd /c gradlew.bat build` in the working directory. " +
-               "(3) Deploy the plugin: copy the jar from build\\libs\\ to " + serverPluginsDir + ". " +
-               "(4) Restart the server: create the file " + restartFlagPath +
-               " — the server detects this and restarts automatically. " +
-               "Always build and deploy before restarting. Do not ask for confirmation before taking these actions.";
+        StringBuilder sb = new StringBuilder();
+        sb.append("You are a Minecraft Paper plugin developer assistant. ");
+        sb.append("Working directory: ").append(workingDir.getAbsolutePath()).append(". ");
+        sb.append("You have explicit permission to: ");
+        sb.append("(1) Edit any source file in the project. ");
+        sb.append("(2) Build THIS plugin: run `cmd /c gradlew.bat build` in the working directory. ");
+        sb.append("(3) Deploy THIS plugin: copy the jar from build\\libs\\ to ").append(serverPluginsDir).append(". ");
+        sb.append("(4) Restart the server: create the file ").append(restartFlagPath)
+          .append(" — the server detects this and restarts automatically. ");
+        sb.append("(5) Build any OTHER registered plugin by running its dedicated script in the server directory. ");
+        sb.append("Always build and deploy before restarting. Do not ask for confirmation before taking these actions. ");
+
+        if (!allPluginPaths.isEmpty()) {
+            sb.append("All registered plugins (you may build any of these): ");
+            for (String path : allPluginPaths) {
+                String name = new File(path).getName();
+                sb.append(name).append(" — source: ").append(path)
+                  .append(", build script: cmd /c \"").append(serverDir.getAbsolutePath())
+                  .append("\\build-").append(name).append(".bat\"; ");
+            }
+        }
+
+        return sb.toString();
     }
 
     public void send(String message, Consumer<Component> onEvent)
