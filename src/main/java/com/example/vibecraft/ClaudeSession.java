@@ -61,6 +61,7 @@ public class ClaudeSession {
         cmd.add("cmd"); cmd.add("/c"); cmd.add(claudePath);
         cmd.add("--print");
         cmd.add("--dangerously-skip-permissions");
+        cmd.add("--verbose");
         cmd.add("--output-format"); cmd.add("stream-json");
         if (!hasSession) {
             cmd.add("--system-prompt");
@@ -76,8 +77,9 @@ public class ClaudeSession {
         pb.redirectErrorStream(false);
 
         Process process = pb.start();
+        process.getOutputStream().close(); // signal no stdin
 
-        // Drain stderr silently on a daemon thread
+        // Drain stderr — errors are visible in the session log file
         Thread stderrDrain = new Thread(() -> {
             try (BufferedReader r = new BufferedReader(
                     new InputStreamReader(process.getErrorStream()))) {
