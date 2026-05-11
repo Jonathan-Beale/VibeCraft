@@ -5,12 +5,15 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.io.File;
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ClaudeCommand implements CommandExecutor {
@@ -222,13 +225,30 @@ public class ClaudeCommand implements CommandExecutor {
         }
         player.sendMessage(PREFIX.append(Component.text("Thinking...", NamedTextColor.GRAY)));
 
+        File logFile = openLogFile(player.getName());
+
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                session.send(message, component ->
+            try (PrintWriter log = new PrintWriter(new FileWriter(logFile, true))) {
+                LocalDateTime start = LocalDateTime.now();
+                log.printf("=== Claude Session ===%n");
+                log.printf("Player:  %s%n", player.getName());
+                log.printf("Project: %s%n", workDir.getAbsolutePath());
+                log.printf("Started: %s%n%n", start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                log.printf("> %s%n%n", message);
+                log.flush();
+
+                session.send(message, component -> {
+                    String plain = PlainTextComponentSerializer.plainText().serialize(component);
+                    log.println(plain);
+                    log.flush();
                     plugin.getServer().getScheduler().runTask(plugin, () ->
-                        player.sendMessage(component)));
+                        player.sendMessage(component));
+                });
+
                 plugin.getPlayerData()
                         .setHasSession(player.getUniqueId(), workDir.getAbsolutePath(), true);
+                log.printf("%nEnded: %s%n%n",
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             } catch (Exception e) {
                 plugin.getLogger().severe("Claude error: " + e.getMessage());
                 plugin.getServer().getScheduler().runTask(plugin, () ->
@@ -293,6 +313,13 @@ public class ClaudeCommand implements CommandExecutor {
                 "/claude <message>  |  /claude --path <dir> <message>  |  " +
                 "/claude repo [set <path>|new <name>|show]  |  /claude reset",
                 NamedTextColor.GRAY)));
+    }
+
+    private File openLogFile(String playerName) {
+        File dir = new File(plugin.getDataFolder(), "sessions");
+        dir.mkdirs();
+        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return new File(dir, playerName + "-" + date + ".log");
     }
 
     private static void copyFile(File src, File dst) throws Exception {
