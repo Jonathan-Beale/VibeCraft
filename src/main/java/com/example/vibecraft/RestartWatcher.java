@@ -6,12 +6,13 @@ import java.io.File;
 
 public class RestartWatcher implements Runnable {
 
-    private static final File FLAG = new File("C:\\Users\\jonat\\minecraft\\server\\restart.flag");
+    private final File FLAG;
 
     private final VibeCraft plugin;
 
     public RestartWatcher(VibeCraft plugin) {
         this.plugin = plugin;
+        this.FLAG = new File(plugin.getRestartFlagPath());
     }
 
     @Override

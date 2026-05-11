@@ -8,5 +8,5 @@ author: YourName
 commands:
   claude:
     description: Send a message to Claude Code
-    usage: /claude <message>
+    usage: /claude <message> | /claude --path <dir> <message> | /claude repo [set|new|show] | /claude reset
     permission: minecraft.command.op
