@@ -1,0 +1,5 @@
+# Absolute path to the VibeCraft project directory (Claude's working directory).
+project-dir: "C:\\Users\\jonat\\minecraft\\VibeCraft"
+
+# Full path to the claude CLI executable.
+claude-path: "C:\\Users\\jonat\\AppData\\Roaming\\npm\\claude.cmd"

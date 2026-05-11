@@ -1,0 +1,12 @@
+name: VibeCraft
+version: '${version}'
+main: com.example.vibecraft.VibeCraft
+api-version: '1.21'
+description: Minecraft plugin with in-game Claude Code interface
+author: YourName
+
+commands:
+  claude:
+    description: Send a message to Claude Code
+    usage: /claude <message>
+    permission: minecraft.command.op
