@@ -19,12 +19,16 @@ public class ClaudeSession {
     private boolean hasSession = false;
 
     public ClaudeSession(File workingDir, String claudePath,
-                         String serverPluginsDir, String restartFlagPath) {
+                         String serverPluginsDir, String restartFlagPath,
+                         boolean hasSession) {
         this.workingDir = workingDir;
         this.claudePath = claudePath;
         this.serverPluginsDir = serverPluginsDir;
         this.restartFlagPath = restartFlagPath;
+        this.hasSession = hasSession;
     }
+
+    public boolean isHasSession() { return hasSession; }
 
     public File getWorkingDir() {
         return workingDir;

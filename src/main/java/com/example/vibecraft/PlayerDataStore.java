@@ -31,6 +31,23 @@ public class PlayerDataStore {
         save();
     }
 
+    public boolean getHasSession(UUID uuid, String path) {
+        return config.getStringList(uuid + ".active-sessions").contains(path);
+    }
+
+    public void setHasSession(UUID uuid, String path, boolean value) {
+        List<String> list = new ArrayList<>(config.getStringList(uuid + ".active-sessions"));
+        if (value) { if (!list.contains(path)) list.add(path); }
+        else        { list.remove(path); }
+        config.set(uuid + ".active-sessions", list.isEmpty() ? null : list);
+        save();
+    }
+
+    public void clearSessions(UUID uuid) {
+        config.set(uuid + ".active-sessions", null);
+        save();
+    }
+
     /** All distinct configured paths — used to seed onboarding suggestions. */
     public List<String> getAllConfiguredPaths() {
         Set<String> paths = new LinkedHashSet<>();

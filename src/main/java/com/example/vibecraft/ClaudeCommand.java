@@ -50,6 +50,7 @@ public class ClaudeCommand implements CommandExecutor {
         // /claude reset
         if (args[0].equalsIgnoreCase("reset")) {
             sessions.keySet().removeIf(k -> k.startsWith(player.getUniqueId().toString()));
+            plugin.getPlayerData().clearSessions(player.getUniqueId());
             player.sendMessage(PREFIX.append(Component.text("Session reset.", NamedTextColor.GRAY)));
             return true;
         }
@@ -208,11 +209,13 @@ public class ClaudeCommand implements CommandExecutor {
             return;
         }
 
-        // Per-player session, keyed by UUID+path so switching repos gets a fresh session
         String sessionKey = player.getUniqueId() + ":" + workDir.getAbsolutePath();
-        ClaudeSession session = sessions.computeIfAbsent(sessionKey, k ->
-                new ClaudeSession(workDir, plugin.getClaudePath(),
-                        plugin.getServerPluginsDir(), plugin.getRestartFlagPath()));
+        ClaudeSession session = sessions.computeIfAbsent(sessionKey, k -> {
+            boolean saved = plugin.getPlayerData()
+                    .getHasSession(player.getUniqueId(), workDir.getAbsolutePath());
+            return new ClaudeSession(workDir, plugin.getClaudePath(),
+                    plugin.getServerPluginsDir(), plugin.getRestartFlagPath(), saved);
+        });
 
         if (isOverride) {
             player.sendMessage(PREFIX.append(
@@ -223,6 +226,8 @@ public class ClaudeCommand implements CommandExecutor {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 List<String> lines = session.send(message);
+                plugin.getPlayerData()
+                        .setHasSession(player.getUniqueId(), workDir.getAbsolutePath(), true);
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
                     for (String line : lines) {
                         player.sendMessage(PREFIX.append(Component.text(line)));
@@ -238,8 +243,8 @@ public class ClaudeCommand implements CommandExecutor {
     }
 
     private void scaffoldNewProject(File dir, String name) throws Exception {
-        // Copy gradle wrapper from VibeCraft so the new project can build immediately
         File self = plugin.getSelfDir();
+        dir.mkdirs();
         copyFile(new File(self, "gradlew.bat"), new File(dir, "gradlew.bat"));
         copyFile(new File(self, "gradlew"), new File(dir, "gradlew"));
         File wrapperDir = new File(dir, "gradle/wrapper");
