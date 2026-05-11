@@ -147,8 +147,8 @@ public class ClaudeSession {
             } else if ("text".equals(blockType)) {
                 String text = block.get("text").getAsString().trim();
                 if (!text.isEmpty()) {
-                    for (String segment : splitLines(text)) {
-                        out.add(prefix().append(Component.text(segment)));
+                    for (Component line : MarkdownRenderer.render(text)) {
+                        out.add(prefix().append(line));
                     }
                 }
             } else if ("tool_use".equals(blockType)) {
