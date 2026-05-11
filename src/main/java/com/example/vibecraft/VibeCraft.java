@@ -30,9 +30,8 @@ public class VibeCraft extends JavaPlugin {
                 new File(getDataFolder(), "../../VibeCraft").getAbsolutePath()));
         workspaceDir = selfDir.getParentFile();
 
-        // getDataFolder() = plugins/VibeCraft/ → parent → plugins/ → parent → server root
         File serverDir = new File(getConfig().getString("server-dir",
-                getDataFolder().getParentFile().getParentFile().getAbsolutePath()));
+                getDataFolder().getAbsoluteFile().getParentFile().getParentFile().getAbsolutePath()));
 
         playerData = new PlayerDataStore(getDataFolder());
         buildScripts = new BuildScriptManager(serverDir, serverPluginsDir);
