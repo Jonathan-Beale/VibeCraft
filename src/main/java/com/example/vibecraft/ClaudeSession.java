@@ -135,7 +135,16 @@ public class ClaudeSession {
         for (JsonElement el : content) {
             JsonObject block = el.getAsJsonObject();
             String blockType = block.get("type").getAsString();
-            if ("text".equals(blockType)) {
+            if ("thinking".equals(blockType)) {
+                String text = block.has("thinking") ? block.get("thinking").getAsString().trim() : "";
+                if (!text.isEmpty()) {
+                    for (String segment : splitLines(text)) {
+                        out.add(Component.text("  ┆ ", NamedTextColor.DARK_GRAY)
+                                .append(Component.text(segment, NamedTextColor.DARK_GRAY)
+                                        .decorate(TextDecoration.ITALIC)));
+                    }
+                }
+            } else if ("text".equals(blockType)) {
                 String text = block.get("text").getAsString().trim();
                 if (!text.isEmpty()) {
                     for (String segment : splitLines(text)) {
