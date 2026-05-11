@@ -1,7 +1,6 @@
 package com.example.vibecraft;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -225,14 +224,11 @@ public class ClaudeCommand implements CommandExecutor {
 
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                List<String> lines = session.send(message);
+                session.send(message, component ->
+                    plugin.getServer().getScheduler().runTask(plugin, () ->
+                        player.sendMessage(component)));
                 plugin.getPlayerData()
                         .setHasSession(player.getUniqueId(), workDir.getAbsolutePath(), true);
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    for (String line : lines) {
-                        player.sendMessage(PREFIX.append(Component.text(line)));
-                    }
-                });
             } catch (Exception e) {
                 plugin.getLogger().severe("Claude error: " + e.getMessage());
                 plugin.getServer().getScheduler().runTask(plugin, () ->
