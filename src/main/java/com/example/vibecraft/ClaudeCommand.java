@@ -313,6 +313,97 @@ public class ClaudeCommand implements CommandExecutor {
                 "api-version: '1.21'\n");
 
         writeText(new File(dir, ".gitignore"), ".gradle/\nbuild/\n!gradle/wrapper/gradle-wrapper.jar\n");
+
+        // ECS skeleton
+        String ecsPkg = pkg + ".ecs";
+        String compPkg = pkg + ".component";
+        String sysPkg = pkg + ".system";
+        File ecsDir  = new File(dir, "src/main/java/" + ecsPkg.replace('.', '/'));
+        File compDir = new File(dir, "src/main/java/" + compPkg.replace('.', '/'));
+        File sysDir  = new File(dir, "src/main/java/" + sysPkg.replace('.', '/'));
+        ecsDir.mkdirs(); compDir.mkdirs(); sysDir.mkdirs();
+
+        writeText(new File(ecsDir, "EntityManager.java"),
+                "package " + ecsPkg + ";\n\n" +
+                "import java.util.*;\n\n" +
+                "/** Attaches and retrieves components keyed by entity UUID. */\n" +
+                "public class EntityManager {\n" +
+                "    private final Map<UUID, Map<Class<?>, Object>> store = new HashMap<>();\n\n" +
+                "    public <T> void add(UUID id, T component) {\n" +
+                "        store.computeIfAbsent(id, k -> new HashMap<>()).put(component.getClass(), component);\n" +
+                "    }\n\n" +
+                "    @SuppressWarnings(\"unchecked\")\n" +
+                "    public <T> Optional<T> get(UUID id, Class<T> type) {\n" +
+                "        Map<Class<?>, Object> m = store.get(id);\n" +
+                "        return m == null ? Optional.empty() : Optional.ofNullable(type.cast(m.get(type)));\n" +
+                "    }\n\n" +
+                "    public void remove(UUID id) { store.remove(id); }\n" +
+                "    public Set<UUID> all() { return Collections.unmodifiableSet(store.keySet()); }\n" +
+                "}\n");
+
+        writeText(new File(ecsDir, "ArchetypeLoader.java"),
+                "package " + ecsPkg + ";\n\n" +
+                "import org.bukkit.configuration.ConfigurationSection;\n" +
+                "import org.bukkit.configuration.file.YamlConfiguration;\n" +
+                "import org.bukkit.plugin.java.JavaPlugin;\n\n" +
+                "import java.io.File;\n" +
+                "import java.util.*;\n\n" +
+                "/** Loads YAML archetypes from src/main/resources/data/ at plugin startup. */\n" +
+                "public class ArchetypeLoader {\n" +
+                "    private final Map<String, ConfigurationSection> archetypes = new HashMap<>();\n\n" +
+                "    public void load(JavaPlugin plugin, String folder) {\n" +
+                "        File dir = new File(plugin.getDataFolder(), folder);\n" +
+                "        if (!dir.exists()) { plugin.saveResource(folder + \"/.keep\", false); return; }\n" +
+                "        for (File f : Objects.requireNonNull(dir.listFiles((d, n) -> n.endsWith(\".yml\")))) {\n" +
+                "            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(f);\n" +
+                "            for (String key : cfg.getKeys(false)) {\n" +
+                "                archetypes.put(key, cfg.getConfigurationSection(key));\n" +
+                "            }\n" +
+                "        }\n" +
+                "        plugin.getLogger().info(\"Loaded \" + archetypes.size() + \" archetypes from \" + folder);\n" +
+                "    }\n\n" +
+                "    public Optional<ConfigurationSection> get(String key) {\n" +
+                "        return Optional.ofNullable(archetypes.get(key));\n" +
+                "    }\n" +
+                "    public Map<String, ConfigurationSection> all() { return Collections.unmodifiableMap(archetypes); }\n" +
+                "}\n");
+
+        // Example component
+        writeText(new File(compDir, "ExampleComponent.java"),
+                "package " + compPkg + ";\n\n" +
+                "/** Example component — replace with real data fields. */\n" +
+                "public record ExampleComponent(String archetypeKey, double value) {}\n");
+
+        // Example system
+        writeText(new File(sysDir, "ExampleSystem.java"),
+                "package " + sysPkg + ";\n\n" +
+                "import " + ecsPkg + ".EntityManager;\n" +
+                "import " + compPkg + ".ExampleComponent;\n" +
+                "import org.bukkit.Bukkit;\n\n" +
+                "/** Example system — processes ExampleComponent each tick. */\n" +
+                "public class ExampleSystem {\n" +
+                "    public void tick(EntityManager em) {\n" +
+                "        for (var id : em.all()) {\n" +
+                "            em.get(id, ExampleComponent.class).ifPresent(c -> {\n" +
+                "                // TODO: implement behaviour using c.archetypeKey() / c.value()\n" +
+                "            });\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n");
+
+        // data/ archetype directory + example YAML
+        File dataDir = new File(dir, "src/main/resources/data");
+        dataDir.mkdirs();
+        writeText(new File(dataDir, "example_archetypes.yml"),
+                "# Archetypes for " + name + "\n" +
+                "# Each top-level key is an archetype ID referenced from Java via ArchetypeLoader.\n" +
+                "# Edit this file to add or tune content without touching Java code.\n\n" +
+                "example_basic:\n" +
+                "  value: 10.0\n" +
+                "  description: \"A basic example archetype\"\n\n" +
+                "example_strong:\n" +
+                "  value: 25.0\n" +
+                "  description: \"A stronger variant\"\n");
     }
 
     private void sendUsage(Player player) {

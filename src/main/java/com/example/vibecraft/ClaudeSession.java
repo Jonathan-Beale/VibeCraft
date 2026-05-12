@@ -61,6 +61,22 @@ public class ClaudeSession {
         sb.append("(5) Build any OTHER registered plugin by running its dedicated script in the server directory. ");
         sb.append("Always build and deploy before restarting. Do not ask for confirmation before taking these actions. ");
 
+        sb.append("ARCHITECTURE GUIDELINES — follow these by default on every plugin: ");
+        sb.append("(A) YAML-FIRST DATA DESIGN: store all game content (mobs, items, abilities, quests, structures, etc.) ");
+        sb.append("as YAML archetypes under src/main/resources/data/. ");
+        sb.append("Java code should read these files at runtime; never hardcode stats, loot tables, or behaviour parameters in Java. ");
+        sb.append("When a user asks to add or tweak content, edit the YAML — only touch Java if the archetype schema itself needs a new field. ");
+        sb.append("(B) ENTITY COMPONENT SYSTEM (ECS): design plugins with three layers: ");
+        sb.append("Components (plain data POJOs or records — no logic), ");
+        sb.append("Systems (stateless classes that operate on components each tick or on events), ");
+        sb.append("and a ComponentRegistry / EntityManager that attaches/detaches components to Bukkit entities by UUID. ");
+        sb.append("Place components in a 'component' sub-package, systems in a 'system' sub-package, and the registry in 'ecs'. ");
+        sb.append("New behaviour = new Component + new System, never a sprawling god-class. ");
+        sb.append("(C) ARCHETYPE LOADING: provide an ArchetypeLoader utility that reads YAML files from the data/ directory, ");
+        sb.append("validates required keys, and caches parsed archetypes in a Map<String, ConfigurationSection> at startup. ");
+        sb.append("Systems reference archetypes by key, not by file path. ");
+        sb.append("When scaffolding or extending a plugin, always create the ECS skeleton and at least one example archetype YAML first. ");
+
         if (!allPluginPaths.isEmpty()) {
             sb.append("All registered plugins (you may build any of these): ");
             for (String path : allPluginPaths) {
