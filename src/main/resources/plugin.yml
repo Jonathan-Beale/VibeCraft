@@ -3,7 +3,7 @@ version: '${version}'
 main: com.example.vibecraft.VibeCraft
 api-version: '1.21'
 description: Minecraft plugin with in-game Claude Code interface
-author: YourName
+author: jonat
 
 commands:
   claude:

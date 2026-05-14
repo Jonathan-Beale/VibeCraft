@@ -1,6 +1,7 @@
 package com.example.vibecraft;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.command.PluginCommand;
 
 import java.io.File;
 
@@ -44,7 +45,13 @@ public class VibeCraft extends JavaPlugin {
         uiRegistry = new PluginUIRegistry(getServer().getPluginManager());
 
         claudeCommand = new ClaudeCommand(this);
-        getCommand("claude").setExecutor(claudeCommand);
+                PluginCommand command = getCommand("claude");
+                if (command == null) {
+                        getLogger().severe("Command 'claude' is not defined in plugin.yml; disabling plugin.");
+                        getServer().getPluginManager().disablePlugin(this);
+                        return;
+                }
+                command.setExecutor(claudeCommand);
         getServer().getPluginManager().registerEvents(
                 new TerminalInputListener(claudeCommand, this), this);
 
