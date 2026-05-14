@@ -10,7 +10,7 @@ import java.util.List;
 
 public class MarkdownRenderer {
 
-    private static final int MAX_LINE = 200;
+    private static final int MAX_LINE = 4000;
 
     /**
      * Renders a multi-line markdown string into a list of formatted Components,

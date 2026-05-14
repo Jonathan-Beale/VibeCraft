@@ -1,0 +1,178 @@
+{
+  "screens": [
+    {
+      "id": "vibecraft:claude",
+      "plugin": "vibecraft",
+      "title": "Claude Chat",
+      "priority": 100,
+      "config": {
+        "keybinds": [
+          {"id": "open_menu", "label": "Open chat panel", "defaultKey": "GRAVE_ACCENT", "defaultMods": 0, "useMods": false},
+          {"id": "toggle_thoughts", "label": "Toggle thoughts", "defaultKey": "T", "defaultMods": 2, "useMods": true},
+          {"id": "open_options", "label": "Open options", "defaultKey": "O", "defaultMods": 2, "useMods": true},
+          {"id": "open_help", "label": "Open help modal", "defaultKey": "H", "defaultMods": 2, "useMods": true},
+          {"id": "sync_history", "label": "Sync history", "defaultKey": "R", "defaultMods": 2, "useMods": true},
+          {"id": "clear_history", "label": "Clear history", "defaultKey": "L", "defaultMods": 2, "useMods": true}
+        ],
+        "colors": {
+          "schemes": [
+            {"name": "terminal", "label": "Terminal", "user": "55FF55", "claude": "55FFFF", "tool": "FFAA00", "output": "888888", "system": "AAAAAA", "question": "FFFF55"},
+            {"name": "midnight", "label": "Midnight", "user": "77CCFF", "claude": "FF88EE", "tool": "FF6666", "output": "5566AA", "system": "8899CC", "question": "FFEE66"},
+            {"name": "warm", "label": "Warm", "user": "FF7744", "claude": "FFEE88", "tool": "FF3333", "output": "AA6633", "system": "CC9966", "question": "FFFF55"},
+            {"name": "mono", "label": "Mono", "user": "FFFFFF", "claude": "CCCCCC", "tool": "AAAAAA", "output": "666666", "system": "888888", "question": "EEEEEE"},
+            {"name": "retro", "label": "Retro", "user": "FFCC33", "claude": "FF9900", "tool": "FF4422", "output": "885522", "system": "AA8833", "question": "FFFF44"}
+          ],
+          "roles": [
+            {"key": "color.user", "label": "User messages"},
+            {"key": "color.claude", "label": "AI responses"},
+            {"key": "color.tool", "label": "Tool calls"},
+            {"key": "color.output", "label": "Bash output"},
+            {"key": "color.system", "label": "System"},
+            {"key": "color.question", "label": "Questions"}
+          ],
+          "palette": {"cols": 21, "rows": 6}
+        },
+        "settings": {
+          "tabs": [
+            {
+              "name": "Settings",
+              "rows": [
+                {"type": "section", "title": "CHAT VISIBILITY"},
+                {"type": "toggle", "key": "chat.user_messages", "label": "Your messages in chat"},
+                {"type": "toggle", "key": "chat.claude_text", "label": "AI responses in chat"},
+                {"type": "toggle", "key": "chat.tools", "label": "Tool calls in chat"},
+                {"type": "toggle", "key": "chat.bash", "label": "Bash output in chat"},
+                {"type": "toggle", "key": "chat.thinking", "label": "Thinking in chat"},
+                {"type": "section", "title": "HUD OVERLAY"},
+                {"type": "int_range", "key": "hud.lines", "label": "Preview lines  (0 = off)", "min": 0, "max": 10},
+                {"type": "section", "title": "CHAT PANEL"},
+                {"type": "toggle", "key": "ui.thoughts_visible", "label": "Show thoughts by default"},
+                {"type": "section", "title": "SHORTCUTS"},
+                {"type": "keybind", "id": "open_menu", "label": "Open chat panel", "useMods": false},
+                {"type": "keybind", "id": "toggle_thoughts", "label": "Toggle thoughts", "useMods": true},
+                {"type": "keybind", "id": "open_options", "label": "Open options", "useMods": true},
+                {"type": "keybind", "id": "open_help", "label": "Open help modal", "useMods": true},
+                {"type": "keybind", "id": "sync_history", "label": "Sync history", "useMods": true},
+                {"type": "keybind", "id": "clear_history", "label": "Clear history", "useMods": true}
+              ]
+            }
+          ]
+        },
+        "help": {
+          "title": "Help",
+          "sections": [
+            {
+              "title": "Shortcuts",
+              "items": [
+                {"keybind": "open_menu", "text": "Open chat panel"},
+                {"keybind": "toggle_thoughts", "text": "Toggle thoughts"},
+                {"keybind": "open_options", "text": "Open options"},
+                {"keybind": "open_help", "text": "Open help"},
+                {"keybind": "sync_history", "text": "Sync history"},
+                {"keybind": "clear_history", "text": "Clear history"}
+              ]
+            },
+            {
+              "title": "Editing",
+              "items": [
+                {"text": "Enter = Send message"},
+                {"text": "Shift+Enter = New line"},
+                {"text": "Ctrl+V = Paste"}
+              ]
+            }
+          ]
+        }
+      },
+      "panel": {
+    "widthPercent": 0.7,
+    "maxWidth": 520,
+    "padding": 8,
+    "titleHeight": 14,
+    "background": "DD0A0A0F",
+    "titleBackground": "FF111118",
+    "divider": "FF2A2A3A",
+    "label": "CCCCCC"
+  },
+  "widgets": [
+    {
+      "type": "toolbar",
+      "showOptions": true,
+      "showHelp": true,
+      "showClose": true,
+      "optionsLabel": "Options",
+      "helpLabel": "Help",
+      "closeLabel": "X",
+      "buttonPaddingX": 6,
+      "buttonBg": "FF18304D",
+      "buttonHover": "FF24507A",
+      "buttonDanger": "FF4A1A1A",
+      "buttonDangerHover": "FF6A2222",
+      "showInlineStatus": true,
+      "idleLabel": "Idle",
+      "statusColor": "FF96A6C2"
+    },
+    {
+      "type": "history",
+      "flex": true,
+      "lineHeight": 11,
+      "showThoughts": false,
+      "scrollbarWidth": 3
+    },
+    {
+      "type": "question_options",
+      "buttonHeight": 16,
+      "buttonGap": 2,
+      "buttonBg": "FF142033",
+      "buttonHover": "FF1E3A5F"
+    },
+    {
+      "type": "input",
+      "height": 72,
+      "placeholder": "Message Claude...",
+      "maxLength": 1000,
+      "prompt": "◆"
+    },
+    {
+      "type": "modal",
+      "id": "help-modal",
+      "title": "Help",
+      "height": 280,
+      "maxWidth": 520,
+      "padding": 10,
+      "titleHeight": 16,
+      "closeLabel": "[x]",
+      "closeOnBackdrop": true,
+      "widgets": [
+        {
+          "type": "text",
+          "height": 22,
+          "wrap": true,
+          "text": "Shortcuts",
+          "color": "FFDDDDDD"
+        },
+        {
+          "type": "text",
+          "height": 110,
+          "wrap": true,
+          "text": "Open panel: ${shortcut.open_menu}\nOpen options: ${shortcut.open_options}\nOpen help: ${shortcut.open_help}\nSync history: ${shortcut.sync_history}\nClear history: ${shortcut.clear_history}\nToggle thoughts: ${shortcut.toggle_thoughts}\n\nEditing keys: Enter=Send, Shift+Enter=New line, Ctrl+V=Paste",
+          "color": "FF96A6C2"
+        },
+        {
+          "type": "spacer",
+          "height": 6
+        },
+        {
+          "type": "action_row",
+          "height": 18,
+          "buttons": [
+            { "label": "Clear History", "action": { "type": "clear_history" } },
+            { "label": "Sync", "action": { "type": "request_history" } },
+            { "label": "Close", "action": { "type": "close_modal" } }
+          ]
+        }
+      ]
+    }
+  ]
+    }
+  ]
+}

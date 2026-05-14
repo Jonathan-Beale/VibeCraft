@@ -14,10 +14,12 @@ public class VibeCraft extends JavaPlugin {
     private String restartFlagPath;
     private File workspaceDir;
     private File selfDir;
+        private PluginUIRegistry uiRegistry;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+                saveResource("ui/main.json", false);
 
         claudePath = getConfig().getString("claude-path",
                 System.getenv("APPDATA") + "\\npm\\claude.cmd");
@@ -39,20 +41,31 @@ public class VibeCraft extends JavaPlugin {
         // Regenerate build scripts from all currently configured repos
         buildScripts.regenerate(playerData.getAllConfiguredPaths());
 
+        uiRegistry = new PluginUIRegistry(getServer().getPluginManager());
+
         claudeCommand = new ClaudeCommand(this);
         getCommand("claude").setExecutor(claudeCommand);
+        getServer().getPluginManager().registerEvents(
+                new TerminalInputListener(claudeCommand, this), this);
 
         getServer().getScheduler().runTaskTimer(this,
                 new RestartWatcher(this), 20L, 20L);
+
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "vibecraft:events");
+        getServer().getMessenger().registerIncomingPluginChannel(this, "vibecraft:input",
+                new ModInputListener(claudeCommand));
 
         getLogger().info("VibeCraft enabled. Workspace: " + workspaceDir.getAbsolutePath());
     }
 
     @Override
     public void onDisable() {
+        getServer().getMessenger().unregisterOutgoingPluginChannel(this, "vibecraft:events");
+        getServer().getMessenger().unregisterIncomingPluginChannel(this, "vibecraft:input");
         getLogger().info("VibeCraft disabled.");
     }
 
+    public ClaudeCommand getClaudeCommand() { return claudeCommand; }
     public PlayerDataStore getPlayerData() { return playerData; }
     public BuildScriptManager getBuildScripts() { return buildScripts; }
     public String getClaudePath() { return claudePath; }
@@ -60,4 +73,5 @@ public class VibeCraft extends JavaPlugin {
     public String getRestartFlagPath() { return restartFlagPath; }
     public File getWorkspaceDir() { return workspaceDir; }
     public File getSelfDir() { return selfDir; }
+        public PluginUIRegistry getUiRegistry() { return uiRegistry; }
 }

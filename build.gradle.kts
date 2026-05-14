@@ -26,3 +26,13 @@ tasks.processResources {
         expand(props)
     }
 }
+
+tasks.jar {
+    from("src/main/resources") {
+        include("**/*")
+    }
+    archiveBaseName.set("VibeCraft")
+    archiveVersion.set(version.toString())
+    destinationDirectory.set(file("build/libs"))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

@@ -16,26 +16,26 @@ public class PlayerDataStore {
         reload();
     }
 
-    private void reload() {
+    private synchronized void reload() {
         config = dataFile.exists()
                 ? YamlConfiguration.loadConfiguration(dataFile)
                 : new YamlConfiguration();
     }
 
-    public String getDefaultPath(UUID uuid) {
+    public synchronized String getDefaultPath(UUID uuid) {
         return config.getString(uuid + ".default-path");
     }
 
-    public void setDefaultPath(UUID uuid, String path) {
+    public synchronized void setDefaultPath(UUID uuid, String path) {
         config.set(uuid + ".default-path", path);
         save();
     }
 
-    public boolean getHasSession(UUID uuid, String path) {
+    public synchronized boolean getHasSession(UUID uuid, String path) {
         return config.getStringList(uuid + ".active-sessions").contains(path);
     }
 
-    public void setHasSession(UUID uuid, String path, boolean value) {
+    public synchronized void setHasSession(UUID uuid, String path, boolean value) {
         List<String> list = new ArrayList<>(config.getStringList(uuid + ".active-sessions"));
         if (value) { if (!list.contains(path)) list.add(path); }
         else        { list.remove(path); }
@@ -43,13 +43,13 @@ public class PlayerDataStore {
         save();
     }
 
-    public void clearSessions(UUID uuid) {
+    public synchronized void clearSessions(UUID uuid) {
         config.set(uuid + ".active-sessions", null);
         save();
     }
 
     /** All distinct configured paths — used to seed onboarding suggestions. */
-    public List<String> getAllConfiguredPaths() {
+    public synchronized List<String> getAllConfiguredPaths() {
         Set<String> paths = new LinkedHashSet<>();
         for (String key : config.getKeys(false)) {
             String p = config.getString(key + ".default-path");
@@ -58,7 +58,7 @@ public class PlayerDataStore {
         return new ArrayList<>(paths);
     }
 
-    private void save() {
+    private synchronized void save() {
         try {
             config.save(dataFile);
         } catch (IOException e) {

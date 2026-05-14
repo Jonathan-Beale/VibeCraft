@@ -31,6 +31,7 @@ public class BuildScriptManager {
 
     private void writePluginScript(File projectDir) {
         String name = projectDir.getName();
+        String dataDir = serverPluginsDir + name + "\\";
         File script = new File(serverDir, "build-" + name + ".bat");
         try (PrintWriter w = new PrintWriter(new FileWriter(script))) {
             w.println("@echo off");
@@ -42,6 +43,12 @@ public class BuildScriptManager {
             w.println("for %%f in (build\\libs\\*.jar) do (");
             w.println("  echo %%f | findstr /V /i \"sources javadoc\" >nul");
             w.println("  if not errorlevel 1 copy /Y \"%%f\" \"" + serverPluginsDir + "\"");
+            w.println(")");
+            // Recursively mirror src/main/resources → plugin data dir, excluding plugin.yml
+            // robocopy exits 0-7 for success (0=nothing to do, 1=copied, etc.), 8+ = error
+            w.println("if exist \"src\\main\\resources\" (");
+            w.println("  robocopy \"src\\main\\resources\" \"" + dataDir + "\" /E /XF plugin.yml >nul");
+            w.println("  if %errorlevel% gtr 7 ( echo [VibeCraft] Resource copy FAILED & exit /b 1 )");
             w.println(")");
             w.println("echo [VibeCraft] Deployed " + name + ".");
         } catch (Exception e) {
