@@ -17,14 +17,12 @@
         "colors": {
           "schemes": [
             {"name": "terminal", "label": "Terminal", "user": "55FF55", "claude": "55FFFF", "tool": "FFAA00", "output": "888888", "system": "AAAAAA", "question": "FFFF55"},
-            {"name": "midnight", "label": "Midnight", "user": "77CCFF", "claude": "FF88EE", "tool": "FF6666", "output": "5566AA", "system": "8899CC", "question": "FFEE66"},
-            {"name": "warm", "label": "Warm", "user": "FF7744", "claude": "FFEE88", "tool": "FF3333", "output": "AA6633", "system": "CC9966", "question": "FFFF55"},
-            {"name": "mono", "label": "Mono", "user": "FFFFFF", "claude": "CCCCCC", "tool": "AAAAAA", "output": "666666", "system": "888888", "question": "EEEEEE"},
-            {"name": "retro", "label": "Retro", "user": "FFCC33", "claude": "FF9900", "tool": "FF4422", "output": "885522", "system": "AA8833", "question": "FFFF44"}
-          ],
-          "roles": [
-            {"key": "color.user", "label": "User messages"},
-            {"key": "color.claude", "label": "AI responses"},
+              },
+              {
+                "name": "Colors",
+                "rows": []
+              }
+            ]
             {"key": "color.tool", "label": "Tool calls"},
             {"key": "color.output", "label": "Bash output"},
             {"key": "color.system", "label": "System"},
@@ -55,8 +53,12 @@
                 {"type": "keybind", "id": "sync_history", "label": "Sync history", "useMods": true},
                 {"type": "keybind", "id": "clear_history", "label": "Clear history", "useMods": true}
               ]
+            },
+            {
+              "name": "Colors",
+              "rows": []
             }
-          ]
+            ]
         },
         "help": {
           "title": "Help",

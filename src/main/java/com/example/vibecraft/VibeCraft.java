@@ -78,6 +78,7 @@ public class VibeCraft extends JavaPlugin {
     public String getClaudePath() { return claudePath; }
     public String getServerPluginsDir() { return serverPluginsDir; }
     public String getRestartFlagPath() { return restartFlagPath; }
+    public String getDefaultRepo() { return getConfig().getString("default-repo"); }
     public File getWorkspaceDir() { return workspaceDir; }
     public File getSelfDir() { return selfDir; }
         public PluginUIRegistry getUiRegistry() { return uiRegistry; }

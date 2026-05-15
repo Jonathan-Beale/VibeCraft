@@ -125,9 +125,16 @@ public class ClaudeCommand implements CommandExecutor {
         } else {
             String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
             if (saved == null) {
-                pendingMessages.put(player.getUniqueId(), message);
-                showOnboarding(player);
-                return true;
+                // Fall back to server-wide default-repo if configured
+                String globalDefault = plugin.getDefaultRepo();
+                if (globalDefault != null && !globalDefault.isBlank()) {
+                    saved = globalDefault;
+                    plugin.getPlayerData().setDefaultPath(player.getUniqueId(), saved);
+                } else {
+                    pendingMessages.put(player.getUniqueId(), message);
+                    showOnboarding(player);
+                    return true;
+                }
             }
             workDir = new File(saved);
         }
@@ -556,9 +563,15 @@ public class ClaudeCommand implements CommandExecutor {
                         new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id))));
         String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
         if (saved == null) {
-            pendingMessages.put(player.getUniqueId(), message);
-            showOnboarding(player);
-            return;
+            String globalDefault = plugin.getDefaultRepo();
+            if (globalDefault != null && !globalDefault.isBlank()) {
+                saved = globalDefault;
+                plugin.getPlayerData().setDefaultPath(player.getUniqueId(), saved);
+            } else {
+                pendingMessages.put(player.getUniqueId(), message);
+                showOnboarding(player);
+                return;
+            }
         }
         runClaude(player, new File(saved), message, false);
     }

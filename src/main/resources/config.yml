@@ -12,3 +12,6 @@ vibecraft-dir: "C:\\Users\\jonat\\minecraft\\VibeCraft"
 
 # Root of the Minecraft server (build scripts are placed here).
 server-dir: "C:\\Users\\jonat\\minecraft\\server"
+
+# Default repo for players who haven't chosen one yet. Leave blank to show the repo picker instead.
+default-repo: ""

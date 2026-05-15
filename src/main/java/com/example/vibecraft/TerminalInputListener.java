@@ -26,7 +26,7 @@ public class TerminalInputListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         ClaudeTerminalUI terminal = command.getTerminal(player);
-        if (terminal == null || !terminal.getInventory().equals(event.getInventory())) return;
+        if (terminal == null || terminal.getInventory() == null || !terminal.getInventory().equals(event.getInventory())) return;
         event.setCancelled(true);
 
         // Only react to clicks in the control row (slots 45–53), not message area

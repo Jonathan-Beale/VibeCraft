@@ -17,7 +17,7 @@ public class PlayerSettings {
         DEFAULTS.put("chat.bash",           "false");
         DEFAULTS.put("chat.thinking",       "false");
         DEFAULTS.put("hud.lines",           "1");
-        DEFAULTS.put("ui.thoughts_visible", "false");
+        DEFAULTS.put("ui.thoughts_visible", "true");
         DEFAULTS.put("ui.color_scheme",     "terminal");
         DEFAULTS.put("color.user",     "55FF55");
         DEFAULTS.put("color.claude",   "55FFFF");
