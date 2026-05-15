@@ -117,7 +117,9 @@
       "type": "history",
       "flex": true,
       "lineHeight": 11,
-      "showThoughts": false,
+      "showThoughts": true,
+      "truncateCollapsed": false,
+      "truncateIndicator": false,
       "scrollbarWidth": 3
     },
     {
@@ -156,7 +158,7 @@
           "type": "text",
           "height": 110,
           "wrap": true,
-          "text": "Open panel: ${shortcut.open_menu}\nOpen options: ${shortcut.open_options}\nOpen help: ${shortcut.open_help}\nSync history: ${shortcut.sync_history}\nClear history: ${shortcut.clear_history}\nToggle thoughts: ${shortcut.toggle_thoughts}\n\nEditing keys: Enter=Send, Shift+Enter=New line, Ctrl+V=Paste",
+          "text": "Open panel: ${shortcut.open_menu}\nOpen options: ${shortcut.open_options}\nOpen help: ${shortcut.open_help}\nSync history: ${shortcut.sync_history}\nClear history: ${shortcut.clear_history}\nToggle thoughts: ${shortcut.toggle_thoughts}\nMock stream test: Ctrl+Shift+M\n\nEditing keys: Enter=Send, Shift+Enter=New line, Ctrl+V=Paste",
           "color": "FF96A6C2"
         },
         {

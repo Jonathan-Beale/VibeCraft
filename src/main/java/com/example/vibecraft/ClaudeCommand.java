@@ -41,6 +41,7 @@ public class ClaudeCommand implements CommandExecutor {
     private static final int HISTORY_CHUNK_TARGET_BYTES = 24_000;
     private static final int LEGACY_HISTORY_MAX_BYTES = 28_000;
     private static final Pattern PROJECT_NAME_PATTERN = Pattern.compile("^[A-Za-z][A-Za-z0-9_-]{0,40}$");
+    private static final String MOD_MOCK_TRIGGER = "__vc_mock_stream_test__";
 
     public ClaudeCommand(VibeCraft plugin) {
         this.plugin = plugin;
@@ -100,10 +101,13 @@ public class ClaudeCommand implements CommandExecutor {
             return true;
         }
 
+        boolean mockMode = args[0].equalsIgnoreCase("mock");
+        int startIndex = mockMode ? 1 : 0;
+
         // Parse optional --path <dir> flag (anywhere in args)
         File overridePath = null;
         List<String> messageTokens = new ArrayList<>();
-        for (int i = 0; i < args.length; i++) {
+        for (int i = startIndex; i < args.length; i++) {
             if ((args[i].equals("--path") || args[i].equals("-p")) && i + 1 < args.length) {
                 overridePath = new File(args[++i]);
             } else {
@@ -139,8 +143,100 @@ public class ClaudeCommand implements CommandExecutor {
             workDir = new File(saved);
         }
 
-        runClaude(player, workDir, message, overridePath != null);
+        if (mockMode) {
+            runMockClaude(player, workDir, message, overridePath != null);
+        } else {
+            runClaude(player, workDir, message, overridePath != null);
+        }
         return true;
+    }
+
+    private void runMockClaude(Player player, File workDir, String message, boolean isOverride) {
+        if (!workDir.exists()) {
+            player.sendMessage(PREFIX.append(
+                    Component.text("Directory not found: " + workDir.getAbsolutePath(), NamedTextColor.RED)));
+            return;
+        }
+
+        final ClaudeTerminalUI terminalRef = terminals.get(player.getUniqueId());
+        final boolean useTerminalUI = terminalRef != null && terminalRef.isOpen();
+
+        if (terminalRef != null) {
+            if (isOverride) terminalRef.addSystemMessage("Using: " + workDir.getName());
+            terminalRef.addSystemMessage("Mock mode: streaming synthetic events (no Claude CLI call).");
+            terminalRef.addUserMessage(message);
+        }
+
+        JsonObject userEvt = new JsonObject();
+        userEvt.addProperty("type", "user_message");
+        userEvt.addProperty("text", message);
+        sendModEvent(player, userEvt.toString());
+
+        if (!useTerminalUI && playerSettings.getBool(player.getUniqueId(), "chat.user_messages")) {
+            if (isOverride)
+                player.sendMessage(PREFIX.append(
+                        Component.text("Using: " + workDir.getName(), NamedTextColor.GRAY)));
+            player.sendMessage(Component.text("─────────────────────────────────────",
+                    NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            player.sendMessage(Component.text("▶ You  ", NamedTextColor.GREEN)
+                    .decoration(TextDecoration.ITALIC, false)
+                    .append(Component.text(message, NamedTextColor.WHITE)));
+        }
+
+        List<Component> bufferedClaudeLines = new ArrayList<>();
+
+        Consumer<TerminalEvent> terminalEvents = terminalRef == null ? null :
+                event -> terminalRef.onEvent(event);
+
+        Consumer<TerminalEvent> chatEvents = useTerminalUI ? null :
+                event -> handleChatEvent(event, player, bufferedClaudeLines);
+
+        Consumer<TerminalEvent> modEvents = event -> {
+            String json = toModJson(event);
+            if (json != null) sendModEvent(player, json);
+        };
+
+        List<Consumer<TerminalEvent>> allConsumers = new ArrayList<>();
+        allConsumers.add(modEvents);
+        if (terminalEvents != null) allConsumers.add(terminalEvents);
+        if (chatEvents != null) allConsumers.add(chatEvents);
+        Consumer<TerminalEvent> allEvents = event -> allConsumers.forEach(c -> c.accept(event));
+
+        String response = "## Mock Claude Response\n"
+                + "This is a simulated response for testing streaming UX only.\n\n"
+                + "- No external Claude process was called\n"
+                + "- Tool and thinking events are synthetic\n"
+                + "- Input: " + message + "\n\n"
+                + "If streaming feels smooth here but not in real mode, the bottleneck is upstream event cadence.";
+        List<Component> rendered = MarkdownRenderer.render(response);
+
+        List<TerminalEvent> scripted = new ArrayList<>();
+        scripted.add(new TerminalEvent.StreamStart());
+
+        List<String> thoughtChunks = List.of(
+            "Analyzing request context and detecting active plugin target for this terminal session...",
+            "Reading recent session state, UI settings, and history synchronization hints from the mod bridge...",
+            "Planning event flow for stream_start, incremental thinking, tool_call, tool_result output, and final text rendering...",
+            "Simulating gradual thought emission at small intervals so caret behavior, scroll behavior, and thought persistence can be validated...",
+            "Checking whether thought lines remain visible after stream_end when final Claude text appears in the same history window...",
+            "Preparing final response payload with markdown blocks and list formatting to stress wrapping and truncation behavior in the backtick UI...",
+            "Finalizing synthetic trace: this run should feel like a real stream rather than a single delayed dump of large paragraphs..."
+        );
+        for (String chunk : thoughtChunks) {
+            scripted.add(new TerminalEvent.Thinking(chunk));
+        }
+
+        scripted.add(new TerminalEvent.ToolCall("MockTool", "simulate_stream"));
+        scripted.add(new TerminalEvent.BashOutput(List.of("mock: stream active", "mock: no CLI process launched")));
+        scripted.add(new TerminalEvent.ClaudeText(rendered, response));
+        scripted.add(new TerminalEvent.StreamEnd());
+
+        long delay = 0L;
+        for (TerminalEvent event : scripted) {
+            final TerminalEvent evt = event;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> allEvents.accept(evt), delay);
+            delay += 6L;
+        }
     }
 
     private boolean handleRepo(Player player, String[] args) {
@@ -573,7 +669,12 @@ public class ClaudeCommand implements CommandExecutor {
                 return;
             }
         }
-        runClaude(player, new File(saved), message, false);
+        File workDir = new File(saved);
+        if (MOD_MOCK_TRIGGER.equals(message)) {
+            runMockClaude(player, workDir, "mock stream test from backtick shortcut", false);
+            return;
+        }
+        runClaude(player, workDir, message, false);
     }
 
     private void sendModEvent(Player player, String json) {
@@ -1115,6 +1216,7 @@ public class ClaudeCommand implements CommandExecutor {
     private void sendUsage(Player player) {
         player.sendMessage(PREFIX.append(Component.text(
                 "/claude <message>  |  /claude --path <dir> <message>  |  " +
+                "/claude mock [--path <dir>] <message>  |  " +
                 "/claude repo [set <path>|new <name>|show]  |  /claude reset",
                 NamedTextColor.GRAY)));
     }

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class SessionHistory {
 
-    public enum Type { USER, CLAUDE, TOOL, BASH, SYSTEM }
+    public enum Type { USER, CLAUDE, THINKING, TOOL, BASH, SYSTEM }
 
     public record Entry(Type type, String header, String body) {}
 

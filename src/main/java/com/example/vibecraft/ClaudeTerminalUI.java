@@ -70,6 +70,12 @@ public class ClaudeTerminalUI {
                     .decoration(TextDecoration.ITALIC, false)
                     .decoration(TextDecoration.BOLD, false),
                 wrap(e.body(), NamedTextColor.WHITE));
+            case THINKING -> new Message(
+                Material.GRAY_DYE,
+                Component.text("┆ Thinking", NamedTextColor.DARK_GRAY)
+                    .decoration(TextDecoration.ITALIC, true)
+                    .decoration(TextDecoration.BOLD, false),
+                wrap(e.body(), NamedTextColor.DARK_GRAY));
             case TOOL -> {
                 int sep = e.header().indexOf('|');
                 String toolName = sep >= 0 ? e.header().substring(0, sep) : e.header();
@@ -147,6 +153,8 @@ public class ClaudeTerminalUI {
             }
             case TerminalEvent.Thinking e -> {
                 if (!e.text().isBlank()) {
+                    streamBuffer.add(new SessionHistory.Entry(
+                        SessionHistory.Type.THINKING, "", e.text()));
                     messages.add(new Message(
                         Material.GRAY_DYE,
                         Component.text("┆ Thinking", NamedTextColor.DARK_GRAY)

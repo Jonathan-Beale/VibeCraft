@@ -8,6 +8,6 @@ author: jonat
 commands:
   claude:
     description: Send a message to Claude Code
-    usage: /claude <message> | /claude --path <dir> <message> | /claude repo [set|new|show] | /claude reset
+    usage: /claude <message> | /claude --path <dir> <message> | /claude mock [--path <dir>] <message> | /claude repo [set|new|show] | /claude reset
     permission: minecraft.command.op
     aliases: [c, ai]

@@ -38,6 +38,9 @@ public class ClaudeSession {
      *  the next assistant text block so that filler doesn't leak into chat. */
     private boolean suppressNextText = false;
 
+    /** Tracks cumulative thinking text for a single send() call so we can stream deltas. */
+    private String lastThinkingText = "";
+
     public ClaudeSession(File workingDir, String claudePath,
                          String serverPluginsDir, String restartFlagPath,
                          File serverDir, List<String> allPluginPaths,
@@ -145,6 +148,7 @@ public class ClaudeSession {
             throws IOException, InterruptedException {
         this.terminalCallback = onTerminalEvent;
         this.suppressNextText = false;
+        this.lastThinkingText = "";
         List<String> cmd = new ArrayList<>();
         cmd.add("cmd"); cmd.add("/c"); cmd.add(claudePath);
         cmd.add("--print");
@@ -199,6 +203,7 @@ public class ClaudeSession {
 
         if (terminalCallback != null) terminalCallback.accept(new TerminalEvent.StreamEnd());
         this.terminalCallback = null;
+        this.lastThinkingText = "";
         hasSession = true;
         pendingToolNames.clear();
     }
@@ -231,15 +236,17 @@ public class ClaudeSession {
             JsonObject block = el.getAsJsonObject();
             String blockType = block.get("type").getAsString();
             if ("thinking".equals(blockType)) {
-                String text = block.has("thinking") ? block.get("thinking").getAsString().trim() : "";
-                if (!text.isEmpty()) {
-                    for (String segment : splitLines(text)) {
+                String text = block.has("thinking") ? block.get("thinking").getAsString() : "";
+                if (!text.isBlank()) {
+                    String delta = extractThinkingDelta(text);
+                    if (delta.isBlank()) continue;
+                    for (String segment : splitLines(delta)) {
                         out.add(Component.text("  ┆ ", NamedTextColor.DARK_GRAY)
                                 .append(Component.text(segment, NamedTextColor.DARK_GRAY)
                                         .decorate(TextDecoration.ITALIC)));
                     }
                     if (terminalCallback != null)
-                        terminalCallback.accept(new TerminalEvent.Thinking(text));
+                        terminalCallback.accept(new TerminalEvent.Thinking(delta));
                 }
             } else if ("text".equals(blockType)) {
                 String text = block.get("text").getAsString().trim();
@@ -397,6 +404,23 @@ public class ClaudeSession {
     private static String truncate(String s, int max) {
         if (s == null) return "";
         return s.length() > max ? s.substring(0, max) + "…" : s;
+    }
+
+    private String extractThinkingDelta(String currentText) {
+        if (lastThinkingText == null || lastThinkingText.isEmpty()) {
+            lastThinkingText = currentText;
+            return currentText;
+        }
+
+        if (currentText.startsWith(lastThinkingText)) {
+            String delta = currentText.substring(lastThinkingText.length());
+            lastThinkingText = currentText;
+            return delta;
+        }
+
+        // Model replaced or rewrote the thought buffer; emit fresh text and resync baseline.
+        lastThinkingText = currentText;
+        return currentText;
     }
 
     private static List<String> splitLines(String text) {
