@@ -17,12 +17,14 @@
         "colors": {
           "schemes": [
             {"name": "terminal", "label": "Terminal", "user": "55FF55", "claude": "55FFFF", "tool": "FFAA00", "output": "888888", "system": "AAAAAA", "question": "FFFF55"},
-              },
-              {
-                "name": "Colors",
-                "rows": []
-              }
-            ]
+            {"name": "midnight", "label": "Midnight", "user": "77CCFF", "claude": "FF88EE", "tool": "FF6666", "output": "5566AA", "system": "8899CC", "question": "FFEE66"},
+            {"name": "warm", "label": "Warm", "user": "FF7744", "claude": "FFEE88", "tool": "FF3333", "output": "AA6633", "system": "CC9966", "question": "FFFF55"},
+            {"name": "mono", "label": "Mono", "user": "FFFFFF", "claude": "CCCCCC", "tool": "AAAAAA", "output": "666666", "system": "888888", "question": "EEEEEE"},
+            {"name": "retro", "label": "Retro", "user": "FFCC33", "claude": "FF9900", "tool": "FF4422", "output": "885522", "system": "AA8833", "question": "FFFF44"}
+          ],
+          "roles": [
+            {"key": "color.user", "label": "User messages"},
+            {"key": "color.claude", "label": "AI responses"},
             {"key": "color.tool", "label": "Tool calls"},
             {"key": "color.output", "label": "Bash output"},
             {"key": "color.system", "label": "System"},
@@ -56,9 +58,27 @@
             },
             {
               "name": "Colors",
-              "rows": []
+              "rows": [
+                {"type": "section", "title": "COLOR SCHEME"},
+                {"type": "color_scheme"},
+                {"type": "section", "title": "MESSAGE COLORS"},
+                {"type": "color", "key": "color.user", "label": "Your messages"},
+                {"type": "color", "key": "color.claude", "label": "AI responses"},
+                {"type": "color", "key": "color.tool", "label": "Tool calls"},
+                {"type": "color", "key": "color.output", "label": "Bash output"},
+                {"type": "color", "key": "color.system", "label": "System"},
+                {"type": "color", "key": "color.question", "label": "Questions"},
+                {"type": "section", "title": "UI ELEMENTS"},
+                {"type": "color", "key": "ui.button_bg", "label": "Button background"},
+                {"type": "color", "key": "ui.button_text", "label": "Button text"},
+                {"type": "color", "key": "ui.button_outline", "label": "Button outline"},
+                {"type": "color", "key": "ui.prompt_color", "label": "Input prompt"},
+                {"type": "color", "key": "ui.input_text", "label": "Input text"},
+                {"type": "color", "key": "ui.caret_color", "label": "Input caret"},
+                {"type": "color", "key": "ui.background", "label": "Panel background"}
+              ]
             }
-            ]
+          ]
         },
         "help": {
           "title": "Help",
@@ -106,9 +126,21 @@
       "closeLabel": "X",
       "buttonPaddingX": 6,
       "buttonBg": "FF18304D",
+      "buttonBgSetting": "ui.button_bg",
       "buttonHover": "FF24507A",
+      "buttonOutline": "553A5A80",
+      "buttonOutlineSetting": "ui.button_outline",
+      "buttonHoverOutline": "FF4A86C8",
       "buttonDanger": "FF4A1A1A",
       "buttonDangerHover": "FF6A2222",
+      "buttonDangerOutline": "775A2020",
+      "buttonDangerHoverOutline": "FFAA4545",
+      "outlineWidth": 1,
+      "textColor": "FF9CCBFF",
+      "textColorSetting": "ui.button_text",
+      "textHoverColor": "FFFFFFFF",
+      "dangerTextColor": "FFAAAAAA",
+      "dangerTextHoverColor": "FFFF7777",
       "showInlineStatus": true,
       "idleLabel": "Idle",
       "statusColor": "FF96A6C2"
@@ -118,6 +150,8 @@
       "flex": true,
       "lineHeight": 11,
       "showThoughts": true,
+      "background": "00000000",
+      "indicatorColor": "FFAA00",
       "truncateCollapsed": false,
       "truncateIndicator": false,
       "scrollbarWidth": 3
@@ -127,56 +161,101 @@
       "buttonHeight": 16,
       "buttonGap": 2,
       "buttonBg": "FF142033",
-      "buttonHover": "FF1E3A5F"
+      "buttonBgSetting": "ui.button_bg",
+      "buttonHover": "FF1E3A5F",
+      "buttonOutline": "553A5A80",
+      "buttonOutlineSetting": "ui.button_outline",
+      "buttonHoverOutline": "FF4A86C8",
+      "outlineWidth": 1,
+      "textColor": "FFFFFFFF",
+      "textColorSetting": "ui.button_text"
     },
     {
       "type": "input",
       "height": 72,
+      "minRows": 1,
+      "lineHeight": 11,
       "placeholder": "Message Claude...",
       "maxLength": 1000,
-      "prompt": "◆"
+      "prompt": "◆",
+      "promptColor": "FF55FFFF",
+      "promptColorSetting": "ui.prompt_color",
+      "placeholderColor": "FF666677",
+      "textColor": "FFFFFFFF",
+      "textColorSetting": "ui.input_text",
+      "caretColor": "FF55FF55",
+      "caretColorSetting": "ui.caret_color",
+      "background": "00000000",
+      "backgroundSetting": "ui.background",
+      "outline": "553A5A80",
+      "outlineSetting": "ui.button_outline",
+      "outlineWidth": 1
     },
     {
       "type": "modal",
       "id": "help-modal",
       "title": "Help",
       "height": 280,
-      "maxWidth": 520,
-      "padding": 10,
-      "titleHeight": 16,
-      "closeLabel": "[x]",
-      "closeOnBackdrop": true,
-      "widgets": [
-        {
-          "type": "text",
-          "height": 22,
-          "wrap": true,
-          "text": "Shortcuts",
-          "color": "FFDDDDDD"
-        },
-        {
-          "type": "text",
-          "height": 110,
-          "wrap": true,
-          "text": "Open panel: ${shortcut.open_menu}\nOpen options: ${shortcut.open_options}\nOpen help: ${shortcut.open_help}\nSync history: ${shortcut.sync_history}\nClear history: ${shortcut.clear_history}\nToggle thoughts: ${shortcut.toggle_thoughts}\nMock stream test: Ctrl+Shift+M\n\nEditing keys: Enter=Send, Shift+Enter=New line, Ctrl+V=Paste",
-          "color": "FF96A6C2"
-        },
-        {
-          "type": "spacer",
-          "height": 6
-        },
-        {
-          "type": "action_row",
-          "height": 18,
-          "buttons": [
-            { "label": "Clear History", "action": { "type": "clear_history" } },
-            { "label": "Sync", "action": { "type": "request_history" } },
-            { "label": "Close", "action": { "type": "close_modal" } }
+          "type": "modal",
+          "id": "help-modal",
+          "title": "Help",
+          "height": 280,
+          "maxWidth": 520,
+          "padding": 10,
+          "titleHeight": 16,
+          "closeLabel": "[x]",
+          "closeButtonBg": "FF142033",
+          "closeButtonHover": "FF3A1010",
+          "closeButtonActiveBg": "FF1A2A2A",
+          "closeColor": "FFAAAAAA",
+          "closeHoverColor": "FFFF7777",
+          "closeActiveColor": "FFFFFFFF",
+          "closeOutline": "553A5A80",
+          "closeHoverOutline": "FFAA4545",
+          "closeActiveOutline": "FFFF9999",
+          "closeOutlineWidth": 1,
+          "closeOnBackdrop": true,
+          "titleColor": "FFFFFFFF",
+          "titleBg": "FF0A0A0F",
+          "contentBg": "FF0A0A0F",
+          "dividerColor": "FF2A2A3A",
+          "widgets": [
+            {
+              "type": "text",
+              "height": 22,
+              "wrap": true,
+              "text": "Shortcuts",
+              "color": "FFDDDDDD"
+            },
+            {
+              "type": "text",
+              "height": 110,
+              "wrap": true,
+              "text": "Open panel: ${shortcut.open_menu}\nOpen options: ${shortcut.open_options}\nOpen help: ${shortcut.open_help}\nSync history: ${shortcut.sync_history}\nClear history: ${shortcut.clear_history}\nToggle thoughts: ${shortcut.toggle_thoughts}\nMock stream test: Ctrl+Shift+M\n\nEditing keys: Enter=Send, Shift+Enter=New line, Ctrl+V=Paste",
+              "color": "FF96A6C2"
+            },
+            {
+              "type": "spacer",
+              "height": 6
+            },
+            {
+              "type": "action_row",
+              "height": 18,
+              "buttonBg": "FF142033",
+              "buttonHover": "FF1E3A5F",
+              "buttonActiveBg": "FF0E1A2A",
+              "buttonOutline": "553A5A80",
+              "buttonHoverOutline": "FF4A86C8",
+              "buttonActiveOutline": "FF6AABEE",
+              "outlineWidth": 1,
+              "buttonText": "FFFFFFFF",
+              "buttonHoverText": "FFFFFFFF",
+              "buttonActiveText": "FFAACCFF",
+              "buttons": [
+                { "label": "Clear History", "action": { "type": "clear_history" } },
+                { "label": "Sync", "action": { "type": "request_history" } },
+                { "label": "Close", "action": { "type": "close_modal" } }
+              ]
+            }
           ]
-        }
-      ]
-    }
-  ]
-    }
-  ]
 }

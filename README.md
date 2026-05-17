@@ -33,6 +33,9 @@ Output jar:
 - Repo onboarding and selection helpers.
 - Optional mod integration over `vibecraft:events` and `vibecraft:input` channels.
 - UI schema export/merge support for mod-driven screens.
+- Plugin-scoped UI settings and styling for multi-plugin coexistence.
+- Schema-driven buttons can invoke client internal actions via `invoke_internal`.
+- Schema overlays can define text, bars, icons, and item slots on the client.
 
 ## Commands
 
@@ -60,6 +63,15 @@ Output jar:
 - Plugin registers outgoing channel: `vibecraft:events`
 - Plugin registers incoming channel: `vibecraft:input`
 - Non-mod clients can still use chat/terminal behavior; they just ignore mod events.
+- Schema payloads should include `plugin`/`namespace` so client state stays isolated per plugin.
+- History/settings payloads can include optional ordering metadata (`seq`, `sequence`, `revision`, or `version`) for conservative client-side replay protection.
+
+## Schema Authoring Notes
+
+- Use `invoke_internal` when a schema button should call a built-in client function.
+- Keep `plugin` set on overlay definitions and screen actions so the client can route them correctly.
+- Prefer plugin-scoped setting keys for anything that should not bleed into another plugin's UI.
+- Unknown widgets/actions fall back safely, so schemas can be extended incrementally.
 
 ## Troubleshooting
 
@@ -74,3 +86,4 @@ If mod UI is missing:
 
 1. Verify client has VibeCraftMod + Fabric setup.
 2. Verify plugin channels are registered and no packet-size errors are reported.
+3. Confirm schema payloads include the correct plugin/namespace for the screen being opened.

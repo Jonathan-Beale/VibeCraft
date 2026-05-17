@@ -54,6 +54,8 @@ public class VibeCraft extends JavaPlugin {
                 command.setExecutor(claudeCommand);
         getServer().getPluginManager().registerEvents(
                 new TerminalInputListener(claudeCommand, this), this);
+        getServer().getPluginManager().registerEvents(
+                new PlayerJoinListener(this, claudeCommand), this);
 
         getServer().getScheduler().runTaskTimer(this,
                 new RestartWatcher(this), 20L, 20L);
