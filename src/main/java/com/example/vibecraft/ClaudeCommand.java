@@ -61,6 +61,14 @@ public class ClaudeCommand implements CommandExecutor {
         plugin.getPlayerData().clearSessions(player.getUniqueId());
     }
 
+    public void cleanupPlayer(Player player) {
+        UUID id = player.getUniqueId();
+        sessions.keySet().removeIf(k -> k.startsWith(id.toString()));
+        pendingMessages.remove(id);
+        terminals.remove(id);
+        lastResponseBook.remove(id);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {

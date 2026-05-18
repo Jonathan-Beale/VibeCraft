@@ -15,6 +15,7 @@ public class SessionHistory {
 
     private final File file;
     private final List<Entry> entries = new ArrayList<>();
+    private PrintWriter writer;
 
     public SessionHistory(File file) {
         this.file = file;
@@ -38,24 +39,36 @@ public class SessionHistory {
         } catch (IOException ignored) {}
     }
 
+    private PrintWriter getWriter() throws IOException {
+        if (writer == null) {
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+        }
+        return writer;
+    }
+
     public void append(Entry entry) {
         entries.add(entry);
-        try (PrintWriter w = new PrintWriter(new FileWriter(file, true))) {
+        try {
             String rawBody = entry.body() == null ? "" : entry.body();
             String body = (entry.type() == Type.TOOL && rawBody.length() > MAX_TOOL_BODY)
                 ? rawBody.substring(0, MAX_TOOL_BODY) + "…"
                 : rawBody;
-            w.printf("%s\t%s\t%s%n",
-                    entry.type(),
-                    escape(entry.header()),
-                    escape(body));
-        } catch (IOException ignored) {}
+            PrintWriter w = getWriter();
+            w.printf("%s\t%s\t%s%n", entry.type(), escape(entry.header()), escape(body));
+            w.flush();
+        } catch (IOException e) {
+            System.err.println("[SessionHistory] Failed to write " + file.getName() + ": " + e.getMessage());
+        }
     }
 
     public List<Entry> entries() { return List.copyOf(entries); }
 
     public void clear() {
         entries.clear();
+        if (writer != null) {
+            writer.close();
+            writer = null;
+        }
         file.delete();
     }
 
