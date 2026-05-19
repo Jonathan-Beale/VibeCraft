@@ -58,6 +58,15 @@ public class ClaudeSession {
     public boolean isHasSession() { return hasSession; }
 
     private String buildSystemPrompt() {
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        String sep = isWindows ? "\\" : "/";
+        String gradleCmd = isWindows ? "cmd /c gradlew.bat build" : "./gradlew build";
+        String buildScriptExt = isWindows ? ".bat" : ".sh";
+        String buildScriptPrefix = isWindows ? "cmd /c \"" : "bash \"";
+        String mcScript = isWindows
+                ? "powershell -ExecutionPolicy Bypass -File \"" + serverDir.getAbsolutePath() + "\\mc.ps1\""
+                : "bash \"" + serverDir.getAbsolutePath() + "/mc.sh\"";
+
         StringBuilder sb = new StringBuilder();
         sb.append("You are a Minecraft Paper plugin developer assistant. ");
         sb.append("Working directory: ").append(workingDir.getAbsolutePath()).append(". ");
@@ -68,17 +77,20 @@ public class ClaudeSession {
 
         sb.append("COMMAND ACCESS you may use at any time without confirmation: ");
         sb.append("(1) Edit any source file in any registered plugin. ");
-        sb.append("(2) Build and deploy THIS plugin: run `cmd /c gradlew.bat build` in the working directory, ");
-        sb.append("then copy the jar from build\\libs\\ to ").append(serverPluginsDir).append(". ");
+        sb.append("(2) Build and deploy THIS plugin: run `").append(gradleCmd)
+          .append("` in the working directory, then copy the jar from build").append(sep).append("libs").append(sep)
+          .append(" to ").append(serverPluginsDir).append(". ");
         sb.append("(3) Build and deploy ANY OTHER registered plugin: run its dedicated build script using ")
-          .append("cmd /c \"<serverDir>\\build-<Name>.bat\" — always use cmd /c, never PowerShell's & operator, ")
-          .append("because the bat files use `call gradlew.bat` which requires a cmd.exe context. ");
-        sb.append("(4) Reload a plugin without a full restart: use RCON — e.g. mc.ps1 \"cenchant reload\" — ");
-        sb.append("whenever the plugin exposes a reload command. Prefer reload over restart when only config or YAML changed. ");
-        sb.append("(5) Restart the server: create the file ").append(restartFlagPath)
-          .append(" — the server detects this and restarts automatically. Use restart after any Java change. ");
-        sb.append("Workflow for Java change: edit source → build → deploy → restart. ");
-        sb.append("Workflow for YAML-only change: edit src/main/resources/ → run build script (copies YAML + redeploys jar) → reload via RCON. ");
+          .append(buildScriptPrefix).append("<serverDir>").append(sep).append("build-<Name>").append(buildScriptExt).append("\" . ");
+        sb.append("(4) Reload after any change — use the PLUGIN-SPECIFIC command, never the global /reload: ");
+        sb.append("EnchantForge changes → ").append(mcScript).append(" \"cenchant reload\". ");
+        sb.append("VibeCraft changes → create the restart flag (see below). ");
+        sb.append("NEVER run ").append(mcScript).append(" \"reload confirm\" — ");
+        sb.append("that reloads ALL plugins including VibeCraft itself, which kills your own running session mid-process. ");
+        sb.append("(5) Restart the server (for VibeCraft Java changes): create the file ").append(restartFlagPath)
+          .append(" — the server detects this and restarts automatically. ");
+        sb.append("Workflow for EnchantForge changes: edit source → build → deploy → ").append(mcScript).append(" \"cenchant reload\". ");
+        sb.append("Workflow for VibeCraft changes: edit source → build → deploy → create restart flag. ");
 
         sb.append("TWO-REPO RULE — strictly separate data from code: ");
         sb.append("(1) YAML DATA FILES are authored in src/main/resources/ in the source repo. ");
@@ -109,10 +121,10 @@ public class ClaudeSession {
         sb.append("live in-world state while the server is running. ");
         sb.append("Connection: host=127.0.0.1, port=25575, password=localdev. ");
         sb.append("To run a server command and read the response, use the short wrapper script: ");
-        sb.append("powershell -ExecutionPolicy Bypass -File \"").append(serverDir.getAbsolutePath())
-          .append("\\mc.ps1\" \"<minecraft command>\". ");
-        sb.append("Examples: mc.ps1 \"list\" (who is online), mc.ps1 \"scoreboard players list\" (scores), ");
-        sb.append("mc.ps1 \"data get entity @a[limit=1] ActiveEffects\" (potion effects on a player). ");
+        sb.append(mcScript).append(" \"<minecraft command>\". ");
+        sb.append("Examples: ").append(mcScript).append(" \"list\" (who is online), ")
+          .append(mcScript).append(" \"scoreboard players list\" (scores), ")
+          .append(mcScript).append(" \"data get entity @a[limit=1] ActiveEffects\" (potion effects on a player). ");
         sb.append("Use RCON to observe actual in-world state when debugging or verifying that an enchant or ");
         sb.append("mechanic is working correctly. Always prefer RCON queries over guessing. ");
 
@@ -132,8 +144,9 @@ public class ClaudeSession {
             for (String path : allPluginPaths) {
                 String name = new File(path).getName();
                 sb.append(name).append(" — source: ").append(path)
-                  .append(", build script: cmd /c \"").append(serverDir.getAbsolutePath())
-                  .append("\\build-").append(name).append(".bat\"; ");
+                  .append(", build script: ").append(buildScriptPrefix)
+                  .append(serverDir.getAbsolutePath()).append(sep)
+                  .append("build-").append(name).append(buildScriptExt).append("\"; ");
             }
         }
 
@@ -150,7 +163,9 @@ public class ClaudeSession {
         this.suppressNextText = false;
         this.lastThinkingText = "";
         List<String> cmd = new ArrayList<>();
-        cmd.add("cmd"); cmd.add("/c"); cmd.add(claudePath);
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        if (isWindows) { cmd.add("cmd"); cmd.add("/c"); }
+        cmd.add(claudePath);
         cmd.add("--print");
         cmd.add("--dangerously-skip-permissions");
         cmd.add("--verbose");

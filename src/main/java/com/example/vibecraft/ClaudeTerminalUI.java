@@ -10,9 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.stream.Collectors;
-
 import java.io.File;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,12 +30,12 @@ public class ClaudeTerminalUI {
 
     private Inventory inv;
     private final List<Message> messages = new ArrayList<>();
+    private final List<SessionHistory.Entry> allEntries = new ArrayList<>();
     private int viewStart = 0;
     private boolean pinnedToBottom = true;
     private boolean isOpen = false;
     private boolean composing = false;
     private boolean streaming = false;
-    private final List<SessionHistory.Entry> streamBuffer = new ArrayList<>();
 
     public ClaudeTerminalUI(Player player, VibeCraft plugin, SessionHistory history) {
         this.player = player;
@@ -47,12 +46,15 @@ public class ClaudeTerminalUI {
 
     private void replayHistory() {
         for (SessionHistory.Entry e : history.entries()) {
+            allEntries.add(e);
             messages.add(entryToMessage(e));
         }
         if (!messages.isEmpty()) {
             viewStart = Math.max(0, messages.size() - DISPLAY_SLOTS);
         }
     }
+
+    public List<SessionHistory.Entry> getEntries() { return List.copyOf(allEntries); }
 
     private Message entryToMessage(SessionHistory.Entry e) {
         return switch (e.type()) {
@@ -127,7 +129,9 @@ public class ClaudeTerminalUI {
     // Called by ClaudeCommand before firing off a session
 
     public void addUserMessage(String text) {
-        history.append(new SessionHistory.Entry(SessionHistory.Type.USER, truncate(text, 38), text));
+        SessionHistory.Entry entry = new SessionHistory.Entry(SessionHistory.Type.USER, truncate(text, 38), text);
+        history.append(entry);
+        allEntries.add(entry);
         List<Component> lore = wrap(text, NamedTextColor.WHITE);
         messages.add(new Message(
             Material.PAPER,
@@ -148,13 +152,12 @@ public class ClaudeTerminalUI {
         switch (event) {
             case TerminalEvent.StreamStart e -> {
                 streaming = true;
-                streamBuffer.clear();
                 render();
             }
             case TerminalEvent.Thinking e -> {
                 if (!e.text().isBlank()) {
-                    streamBuffer.add(new SessionHistory.Entry(
-                        SessionHistory.Type.THINKING, "", e.text()));
+                    // Thinking goes to allEntries (for mod history replay) but not the persistent history file
+                    allEntries.add(new SessionHistory.Entry(SessionHistory.Type.THINKING, "", e.text()));
                     messages.add(new Message(
                         Material.GRAY_DYE,
                         Component.text("┆ Thinking", NamedTextColor.DARK_GRAY)
@@ -171,8 +174,10 @@ public class ClaudeTerminalUI {
                 String firstRaw = raw.lines().filter(l -> !l.isBlank()).findFirst().orElse("");
                 String headerText = firstRaw.replaceAll("^#+\\s+", "")
                         .replaceAll("^>\\s+", "").replaceAll("^[-*]\\s+", "");
-                streamBuffer.add(new SessionHistory.Entry(
-                    SessionHistory.Type.CLAUDE, truncate(headerText, 35), raw));
+                SessionHistory.Entry claudeEntry = new SessionHistory.Entry(
+                    SessionHistory.Type.CLAUDE, truncate(headerText, 35), raw);
+                history.append(claudeEntry);
+                allEntries.add(claudeEntry);
                 List<Component> lore = new ArrayList<>();
                 for (Component c : e.lines()) {
                     lore.add(c.decoration(TextDecoration.ITALIC, false));
@@ -189,8 +194,10 @@ public class ClaudeTerminalUI {
                 render();
             }
             case TerminalEvent.ToolCall e -> {
-                streamBuffer.add(new SessionHistory.Entry(
-                    SessionHistory.Type.TOOL, e.toolName() + "|" + e.detail(), ""));
+                SessionHistory.Entry toolEntry = new SessionHistory.Entry(
+                    SessionHistory.Type.TOOL, e.toolName() + "|" + e.detail(), "");
+                history.append(toolEntry);
+                allEntries.add(toolEntry);
                 var style = toolStyle(e.toolName());
                 Component header = Component.text("[" + e.toolName() + "]", style.color())
                     .decoration(TextDecoration.BOLD, true)
@@ -205,8 +212,10 @@ public class ClaudeTerminalUI {
             }
             case TerminalEvent.BashOutput e -> {
                 if (e.lines().isEmpty()) break;
-                streamBuffer.add(new SessionHistory.Entry(
-                    SessionHistory.Type.BASH, "", String.join("\n", e.lines())));
+                SessionHistory.Entry bashEntry = new SessionHistory.Entry(
+                    SessionHistory.Type.BASH, "", String.join("\n", e.lines()));
+                history.append(bashEntry);
+                allEntries.add(bashEntry);
                 List<Component> lore = new ArrayList<>();
                 for (String l : e.lines()) {
                     lore.add(Component.text(l, NamedTextColor.DARK_GRAY)
@@ -224,16 +233,16 @@ public class ClaudeTerminalUI {
             }
             case TerminalEvent.StreamEnd e -> {
                 streaming = false;
-                for (SessionHistory.Entry entry : streamBuffer) history.append(entry);
-                streamBuffer.clear();
                 render();
             }
             case TerminalEvent.Question e -> {
                 String optionLines = e.options().stream()
                         .map(o -> "  • " + o)
                         .collect(Collectors.joining("\n"));
-                streamBuffer.add(new SessionHistory.Entry(
-                        SessionHistory.Type.CLAUDE, "? " + e.prompt(), optionLines));
+                SessionHistory.Entry questionEntry = new SessionHistory.Entry(
+                        SessionHistory.Type.CLAUDE, "? " + e.prompt(), optionLines);
+                history.append(questionEntry);
+                allEntries.add(questionEntry);
                 List<Component> lore = new ArrayList<>();
                 for (int i = 0; i < e.options().size(); i++) {
                     lore.add(Component.text("[" + (char)('A' + i) + "] " + e.options().get(i),
@@ -251,7 +260,9 @@ public class ClaudeTerminalUI {
     }
 
     public void addSystemMessage(String text) {
-        history.append(new SessionHistory.Entry(SessionHistory.Type.SYSTEM, text, ""));
+        SessionHistory.Entry entry = new SessionHistory.Entry(SessionHistory.Type.SYSTEM, text, "");
+        history.append(entry);
+        allEntries.add(entry);
         messages.add(new Message(
             Material.COMMAND_BLOCK,
             Component.text("⚙ " + text, NamedTextColor.GRAY)
@@ -265,7 +276,7 @@ public class ClaudeTerminalUI {
     public void clearHistory() {
         history.clear();
         messages.clear();
-        streamBuffer.clear();
+        allEntries.clear();
         streaming = false;
         viewStart = 0;
         render();
@@ -281,6 +292,7 @@ public class ClaudeTerminalUI {
             case 48 -> startCompose();
             case 50 -> {
                 messages.clear();
+                allEntries.clear();
                 viewStart = 0;
                 streaming = false;
                 pinnedToBottom = true;

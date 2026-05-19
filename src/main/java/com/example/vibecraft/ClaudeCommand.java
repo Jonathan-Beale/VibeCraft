@@ -915,14 +915,17 @@ public class ClaudeCommand implements CommandExecutor {
     }
 
     private void sendHistoryToMod(Player player) {
-        SessionHistory history = new SessionHistory(
-                SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId()));
+        // Prefer in-memory entries from the live terminal (includes thinking) over the file.
+        ClaudeTerminalUI terminal = terminals.get(player.getUniqueId());
+        List<SessionHistory.Entry> entries = terminal != null
+                ? terminal.getEntries()
+                : new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId())).entries();
 
         // Backward compatibility for older mod clients that only understand "history".
-        sendLegacyHistory(player, history.entries());
+        sendLegacyHistory(player, entries);
 
         JsonArray chunk = new JsonArray();
-        for (SessionHistory.Entry e : history.entries()) {
+        for (SessionHistory.Entry e : entries) {
             JsonObject je = new JsonObject();
             je.addProperty("type", e.type().name());
             je.addProperty("header", e.header());
