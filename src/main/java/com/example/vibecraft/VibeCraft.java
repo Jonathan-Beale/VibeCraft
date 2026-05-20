@@ -10,11 +10,13 @@ public class VibeCraft extends JavaPlugin {
     private PlayerDataStore playerData;
     private BuildScriptManager buildScripts;
     private ClaudeCommand claudeCommand;
-    private String claudePath;
-    private String serverPluginsDir;
-    private String restartFlagPath;
-    private File workspaceDir;
-    private File selfDir;
+        private String claudePath;
+        private String hermesPath;
+        private String aiProvider;
+        private String serverPluginsDir;
+        private String restartFlagPath;
+        private File workspaceDir;
+        private File selfDir;
         private PluginUIRegistry uiRegistry;
 
     @Override
@@ -24,6 +26,8 @@ public class VibeCraft extends JavaPlugin {
 
         claudePath = getConfig().getString("claude-path",
                 System.getenv("APPDATA") + "\\npm\\claude.cmd");
+        hermesPath = getConfig().getString("hermes-path", "/home/brian/ai/hermes/.venv/bin/hermes");
+        aiProvider = getConfig().getString("ai-provider", "claude");
         serverPluginsDir = getConfig().getString("server-plugins-dir",
                 new File(getDataFolder(), "../../server/plugins").getAbsolutePath() + "\\");
         restartFlagPath = getConfig().getString("restart-flag-path",
@@ -77,7 +81,9 @@ public class VibeCraft extends JavaPlugin {
     public ClaudeCommand getClaudeCommand() { return claudeCommand; }
     public PlayerDataStore getPlayerData() { return playerData; }
     public BuildScriptManager getBuildScripts() { return buildScripts; }
-    public String getClaudePath() { return claudePath; }
+        public String getClaudePath() { return claudePath; }
+        public String getHermesPath() { return hermesPath; }
+        public String getAiProvider() { return aiProvider; }
     public String getServerPluginsDir() { return serverPluginsDir; }
     public String getRestartFlagPath() { return restartFlagPath; }
     public String getDefaultRepo() { return getConfig().getString("default-repo"); }

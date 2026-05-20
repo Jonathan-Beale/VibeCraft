@@ -44,6 +44,17 @@ public final class PluginUIRegistry {
             appendArrayWithPlugin(mergedOverlays, pluginSchema.getAsJsonArray("overlays"), p.getName());
         }
 
+        // Inject provider from VibeCraft config
+        try {
+            Plugin plugin = pluginManager.getPlugin("VibeCraft");
+            if (plugin instanceof VibeCraft) {
+                String provider = ((VibeCraft) plugin).getAiProvider();
+                if (provider != null && !provider.isEmpty()) {
+                    merged.addProperty("provider", provider);
+                }
+            }
+        } catch (Exception ignored) {}
+
         return merged;
     }
 

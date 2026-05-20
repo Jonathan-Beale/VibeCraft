@@ -390,7 +390,8 @@ public class ClaudeCommand implements CommandExecutor {
     private void openTerminal(Player player) {
         ClaudeTerminalUI terminal = terminals.computeIfAbsent(
                 player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
-                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id))));
+                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
+                        plugin.getAiProvider()));
         terminal.open();
     }
 
@@ -398,7 +399,8 @@ public class ClaudeCommand implements CommandExecutor {
     public void submitFromTerminal(Player player, String message) {
         ClaudeTerminalUI terminal = terminals.computeIfAbsent(
                 player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
-                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id))));
+                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
+                        plugin.getAiProvider()));
         terminal.open();
 
         String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
@@ -420,12 +422,18 @@ public class ClaudeCommand implements CommandExecutor {
         String sessionKey = player.getUniqueId() + ":" + workDir.getAbsolutePath();
         ClaudeSession session = sessions.computeIfAbsent(sessionKey, k -> {
             boolean saved = plugin.getPlayerData()
-                    .getHasSession(player.getUniqueId(), workDir.getAbsolutePath());
-            return new ClaudeSession(workDir, plugin.getClaudePath(),
-                    plugin.getServerPluginsDir(), plugin.getRestartFlagPath(),
-                    plugin.getBuildScripts().getServerDir(),
-                    plugin.getPlayerData().getAllConfiguredPaths(),
-                    saved);
+                .getHasSession(player.getUniqueId(), workDir.getAbsolutePath());
+            return new ClaudeSession(
+            workDir,
+            plugin.getClaudePath(),
+            plugin.getHermesPath(),
+            plugin.getAiProvider(),
+            plugin.getServerPluginsDir(),
+            plugin.getRestartFlagPath(),
+            plugin.getBuildScripts().getServerDir(),
+            plugin.getPlayerData().getAllConfiguredPaths(),
+            saved
+            );
         });
 
         // terminalRef: non-null if terminal was ever opened — always receives events for history
@@ -663,8 +671,9 @@ public class ClaudeCommand implements CommandExecutor {
     /** Called by ModInputListener when the player submits via the mod input overlay. */
     public void submitFromMod(Player player, String message) {
         terminals.computeIfAbsent(player.getUniqueId(),
-                id -> new ClaudeTerminalUI(player, plugin,
-                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id))));
+            id -> new ClaudeTerminalUI(player, plugin,
+                new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
+                plugin.getAiProvider()));
         String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
         if (saved == null) {
             String globalDefault = plugin.getDefaultRepo();

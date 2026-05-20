@@ -20,7 +20,8 @@ public class ClaudeTerminalUI {
 
     private static final int DISPLAY_SLOTS = 45; // rows 0–4 (5 × 9)
     private static final int WRAP_WIDTH    = 48;
-    private static final Component TITLE = Component.text("◆ Claude Terminal", NamedTextColor.AQUA);
+    private final String providerName;
+    private final Component titleComponent;
 
     private record Message(Material mat, Component header, List<Component> lore) {}
 
@@ -37,10 +38,12 @@ public class ClaudeTerminalUI {
     private boolean composing = false;
     private boolean streaming = false;
 
-    public ClaudeTerminalUI(Player player, VibeCraft plugin, SessionHistory history) {
+    public ClaudeTerminalUI(Player player, VibeCraft plugin, SessionHistory history, String providerName) {
         this.player = player;
         this.plugin = plugin;
         this.history = history;
+        this.providerName = providerName;
+        this.titleComponent = Component.text("◆ " + providerName + " Terminal", NamedTextColor.AQUA);
         replayHistory();
     }
 
@@ -67,7 +70,7 @@ public class ClaudeTerminalUI {
                 wrap(e.body(), NamedTextColor.WHITE));
             case CLAUDE -> new Message(
                 Material.WRITTEN_BOOK,
-                Component.text("◆ Claude  ", NamedTextColor.AQUA)
+                Component.text("◆ " + providerName + "  ", NamedTextColor.AQUA)
                     .append(Component.text(truncate(e.header(), 35), NamedTextColor.WHITE))
                     .decoration(TextDecoration.ITALIC, false)
                     .decoration(TextDecoration.BOLD, false),
@@ -112,7 +115,7 @@ public class ClaudeTerminalUI {
     public void open() {
         composing = false;
         isOpen = true;
-        inv = Bukkit.createInventory(null, 54, TITLE);
+        inv = Bukkit.createInventory(null, 54, titleComponent);
         render();
         player.openInventory(inv);
     }
@@ -184,7 +187,7 @@ public class ClaudeTerminalUI {
                 }
                 messages.add(new Message(
                     Material.WRITTEN_BOOK,
-                    Component.text("◆ Claude  ", NamedTextColor.AQUA)
+                    Component.text("◆ " + providerName + "  ", NamedTextColor.AQUA)
                         .append(Component.text(truncate(headerText, 35), NamedTextColor.WHITE))
                         .decoration(TextDecoration.ITALIC, false)
                         .decoration(TextDecoration.BOLD, false),

@@ -1,6 +1,12 @@
 # Full path to the claude CLI executable.
 claude-path: "C:\\Users\\jonat\\AppData\\Roaming\\npm\\claude.cmd"
 
+# Full path to the hermes CLI executable.
+hermes-path: "/home/brian/ai/hermes/.venv/bin/hermes"
+
+# AI provider: 'claude' or 'hermes'
+ai-provider: "hermes"
+
 # Where the server's plugins folder is (jars are deployed here).
 server-plugins-dir: "C:\\Users\\jonat\\minecraft\\server\\plugins\\"
 

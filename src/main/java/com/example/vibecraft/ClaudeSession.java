@@ -17,13 +17,15 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class ClaudeSession {
 
+public class ClaudeSession {
     private static final int TIMEOUT_SECONDS = 120;
     private static final int MAX_LINE = 200;
 
     private final File workingDir;
     private final String claudePath;
+    private final String hermesPath;
+    private final String aiProvider;
     private final String serverPluginsDir;
     private final String restartFlagPath;
     private final File serverDir;
@@ -41,12 +43,14 @@ public class ClaudeSession {
     /** Tracks cumulative thinking text for a single send() call so we can stream deltas. */
     private String lastThinkingText = "";
 
-    public ClaudeSession(File workingDir, String claudePath,
+    public ClaudeSession(File workingDir, String claudePath, String hermesPath, String aiProvider,
                          String serverPluginsDir, String restartFlagPath,
                          File serverDir, List<String> allPluginPaths,
                          boolean hasSession) {
         this.workingDir = workingDir;
         this.claudePath = claudePath;
+        this.hermesPath = hermesPath;
+        this.aiProvider = aiProvider;
         this.serverPluginsDir = serverPluginsDir;
         this.restartFlagPath = restartFlagPath;
         this.serverDir = serverDir;
@@ -162,6 +166,50 @@ public class ClaudeSession {
         this.terminalCallback = onTerminalEvent;
         this.suppressNextText = false;
         this.lastThinkingText = "";
+
+        if ("hermes".equalsIgnoreCase(aiProvider)) {
+            // Hermes CLI: hermes chat -q "message" -Q
+            List<String> cmd = new ArrayList<>();
+            cmd.add(hermesPath);
+            cmd.add("chat");
+            cmd.add("-q");
+            cmd.add(message);
+            cmd.add("-Q");
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+            pb.directory(workingDir);
+            pb.redirectErrorStream(true);
+            if (terminalCallback != null) terminalCallback.accept(new TerminalEvent.StreamStart());
+            Process process = pb.start();
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+            boolean done = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!done) {
+                process.destroyForcibly();
+                throw new IOException("Hermes timed out after " + TIMEOUT_SECONDS + "s");
+            }
+            // Output as a single ClaudeText event
+            String response = output.toString().trim();
+            if (!response.isEmpty()) {
+                List<Component> rendered = MarkdownRenderer.render(response);
+                for (Component line : rendered) onEvent.accept(prefix().append(line));
+                if (terminalCallback != null)
+                    terminalCallback.accept(new TerminalEvent.ClaudeText(rendered, response));
+            }
+            if (terminalCallback != null) terminalCallback.accept(new TerminalEvent.StreamEnd());
+            this.terminalCallback = null;
+            this.lastThinkingText = "";
+            hasSession = true;
+            pendingToolNames.clear();
+            return;
+        }
+
+        // Default: Claude CLI
         List<String> cmd = new ArrayList<>();
         boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
         if (isWindows) { cmd.add("cmd"); cmd.add("/c"); }
@@ -176,22 +224,14 @@ public class ClaudeSession {
         } else {
             cmd.add("--continue");
         }
-        // Message is passed via stdin to preserve newlines — cmd.exe treats newlines as
-        // command separators, so a positional arg with embedded \n gets truncated at the first line.
-
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.directory(workingDir);
-        // Keep stderr separate so it doesn't corrupt the JSON stream
         pb.redirectErrorStream(false);
-
         if (terminalCallback != null) terminalCallback.accept(new TerminalEvent.StreamStart());
-
         Process process = pb.start();
         try (OutputStream stdin = process.getOutputStream()) {
             stdin.write(message.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
-
-        // Drain stderr — errors are visible in the session log file
         Thread stderrDrain = new Thread(() -> {
             try (BufferedReader r = new BufferedReader(
                     new InputStreamReader(process.getErrorStream()))) {
@@ -200,7 +240,6 @@ public class ClaudeSession {
         });
         stderrDrain.setDaemon(true);
         stderrDrain.start();
-
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -209,13 +248,11 @@ public class ClaudeSession {
                 for (Component c : events) onEvent.accept(c);
             }
         }
-
         boolean done = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         if (!done) {
             process.destroyForcibly();
             throw new IOException("Claude timed out after " + TIMEOUT_SECONDS + "s");
         }
-
         if (terminalCallback != null) terminalCallback.accept(new TerminalEvent.StreamEnd());
         this.terminalCallback = null;
         this.lastThinkingText = "";
