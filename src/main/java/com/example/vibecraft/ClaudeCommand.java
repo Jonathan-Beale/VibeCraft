@@ -388,19 +388,21 @@ public class ClaudeCommand implements CommandExecutor {
     }
 
     private void openTerminal(Player player) {
+        String provider = plugin.getAiProvider();
         ClaudeTerminalUI terminal = terminals.computeIfAbsent(
-                player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
-                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
-                        plugin.getAiProvider()));
+            player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
+                new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id, provider)),
+                provider));
         terminal.open();
     }
 
     /** Called by TerminalInputListener when the player submits a message in compose mode. */
     public void submitFromTerminal(Player player, String message) {
+        String provider = plugin.getAiProvider();
         ClaudeTerminalUI terminal = terminals.computeIfAbsent(
-                player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
-                        new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
-                        plugin.getAiProvider()));
+            player.getUniqueId(), id -> new ClaudeTerminalUI(player, plugin,
+                new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id, provider)),
+                provider));
         terminal.open();
 
         String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
@@ -670,10 +672,11 @@ public class ClaudeCommand implements CommandExecutor {
 
     /** Called by ModInputListener when the player submits via the mod input overlay. */
     public void submitFromMod(Player player, String message) {
+        String provider = plugin.getAiProvider();
         terminals.computeIfAbsent(player.getUniqueId(),
             id -> new ClaudeTerminalUI(player, plugin,
-                new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id)),
-                plugin.getAiProvider()));
+                new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), id, provider)),
+                provider));
         String saved = plugin.getPlayerData().getDefaultPath(player.getUniqueId());
         if (saved == null) {
             String globalDefault = plugin.getDefaultRepo();
@@ -913,8 +916,9 @@ public class ClaudeCommand implements CommandExecutor {
     }
 
     public void clearHistoryFor(Player player) {
+        String provider = plugin.getAiProvider();
         SessionHistory history = new SessionHistory(
-                SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId()));
+            SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId(), provider));
         history.clear();
 
         ClaudeTerminalUI terminal = terminals.get(player.getUniqueId());
@@ -925,10 +929,11 @@ public class ClaudeCommand implements CommandExecutor {
 
     private void sendHistoryToMod(Player player) {
         // Prefer in-memory entries from the live terminal (includes thinking) over the file.
+        String provider = plugin.getAiProvider();
         ClaudeTerminalUI terminal = terminals.get(player.getUniqueId());
         List<SessionHistory.Entry> entries = terminal != null
-                ? terminal.getEntries()
-                : new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId())).entries();
+            ? terminal.getEntries()
+            : new SessionHistory(SessionHistory.fileFor(plugin.getDataFolder(), player.getUniqueId(), provider)).entries();
 
         // Backward compatibility for older mod clients that only understand "history".
         sendLegacyHistory(player, entries);

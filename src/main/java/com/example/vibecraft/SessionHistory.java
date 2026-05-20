@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class SessionHistory {
 
-    public enum Type { USER, CLAUDE, THINKING, TOOL, BASH, SYSTEM }
+    public enum Type { USER, CLAUDE, HERMES, THINKING, TOOL, BASH, SYSTEM }
 
     public record Entry(Type type, String header, String body) {}
 
@@ -72,10 +72,11 @@ public class SessionHistory {
         file.delete();
     }
 
-    public static File fileFor(File dataFolder, UUID uuid) {
+    public static File fileFor(File dataFolder, UUID uuid, String provider) {
         File dir = new File(dataFolder, "sessions");
         dir.mkdirs();
-        return new File(dir, uuid + ".hist");
+        String prov = provider == null ? "default" : provider.toLowerCase();
+        return new File(dir, uuid + "-" + prov + ".hist");
     }
 
     private static String escape(String s) {

@@ -177,10 +177,15 @@ public class ClaudeTerminalUI {
                 String firstRaw = raw.lines().filter(l -> !l.isBlank()).findFirst().orElse("");
                 String headerText = firstRaw.replaceAll("^#+\\s+", "")
                         .replaceAll("^>\\s+", "").replaceAll("^[-*]\\s+", "");
-                SessionHistory.Entry claudeEntry = new SessionHistory.Entry(
-                    SessionHistory.Type.CLAUDE, truncate(headerText, 35), raw);
-                history.append(claudeEntry);
-                allEntries.add(claudeEntry);
+                SessionHistory.Type aiType = switch (providerName.toLowerCase()) {
+                    case "hermes" -> SessionHistory.Type.HERMES;
+                    case "claude" -> SessionHistory.Type.CLAUDE;
+                    default -> SessionHistory.Type.CLAUDE;
+                };
+                SessionHistory.Entry aiEntry = new SessionHistory.Entry(
+                    aiType, truncate(headerText, 35), raw);
+                history.append(aiEntry);
+                allEntries.add(aiEntry);
                 List<Component> lore = new ArrayList<>();
                 for (Component c : e.lines()) {
                     lore.add(c.decoration(TextDecoration.ITALIC, false));
