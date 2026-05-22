@@ -1143,6 +1143,7 @@ public class ClaudeCommand implements CommandExecutor {
     }
 
     private Component buildActionBarForTool(String toolName, String detail) {
+        // TODO: consolidate — duplicated tool-type switch exists in ClaudeSession, ClaudeCommand, and ClaudeTerminalUI; extract shared logic
         NamedTextColor color = switch (toolName) {
             case "Write"               -> NamedTextColor.GREEN;
             case "Edit"                -> NamedTextColor.YELLOW;

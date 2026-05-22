@@ -25,6 +25,7 @@ public class ModInputListener implements PluginMessageListener {
                 return;
             }
 
+            // TODO: replace if-chain with handler map — violates registry/dispatch design principle
             if (obj.has("type")) {
                 String type = obj.get("type").getAsString();
                 if ("request_history".equals(type)) {

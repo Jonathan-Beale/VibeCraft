@@ -106,6 +106,13 @@ public class ClaudeTerminalUI {
                 Component.text("⚙ " + e.header(), NamedTextColor.GRAY)
                     .decoration(TextDecoration.ITALIC, false),
                 Collections.emptyList());
+            case HERMES -> new Message(
+                Material.BOOK,
+                Component.text("⚡ Hermes  ", NamedTextColor.YELLOW)
+                    .append(Component.text(truncate(e.header(), 38), NamedTextColor.WHITE))
+                    .decoration(TextDecoration.ITALIC, false)
+                    .decoration(TextDecoration.BOLD, false),
+                wrap(e.body(), NamedTextColor.WHITE));
         };
     }
 
@@ -454,6 +461,7 @@ public class ClaudeTerminalUI {
 
     private record ToolStyle(Material mat, NamedTextColor color) {}
 
+    // TODO: consolidate — duplicated tool-type switch exists in ClaudeSession, ClaudeCommand, and ClaudeTerminalUI; extract shared logic
     private static ToolStyle toolStyle(String name) {
         return switch (name) {
             case "Write"                  -> new ToolStyle(Material.GREEN_STAINED_GLASS_PANE,  NamedTextColor.GREEN);

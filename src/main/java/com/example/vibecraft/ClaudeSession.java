@@ -71,6 +71,7 @@ public class ClaudeSession {
                 ? "powershell -ExecutionPolicy Bypass -File \"" + serverDir.getAbsolutePath() + "\\mc.ps1\""
                 : "bash \"" + serverDir.getAbsolutePath() + "/mc.sh\"";
 
+        // TODO: move system prompt to a resource template file — large string literals in Java are hard to maintain
         StringBuilder sb = new StringBuilder();
         sb.append("You are a Minecraft Paper plugin developer assistant. ");
         sb.append("Working directory: ").append(workingDir.getAbsolutePath()).append(". ");
@@ -123,7 +124,7 @@ public class ClaudeSession {
 
         sb.append("LIVE DEBUGGING VIA RCON: The Minecraft server exposes an RCON interface you can use to query ");
         sb.append("live in-world state while the server is running. ");
-        sb.append("Connection: host=127.0.0.1, port=25575, password=localdev. ");
+        sb.append("Connection: host=127.0.0.1, port=25575, password=<configured in server dir .env>. ");
         sb.append("To run a server command and read the response, use the short wrapper script: ");
         sb.append(mcScript).append(" \"<minecraft command>\". ");
         sb.append("Examples: ").append(mcScript).append(" \"list\" (who is online), ")
@@ -325,6 +326,7 @@ public class ClaudeSession {
 
                 out.add(formatToolCall(name, input));
                 if (terminalCallback != null) {
+                    // TODO: consolidate — duplicated tool-type switch exists in ClaudeSession, ClaudeCommand, and ClaudeTerminalUI; extract shared logic
                     String detail = switch (name) {
                         case "Read", "Write", "Edit" -> shortPath(getString(input, "file_path"));
                         case "Bash", "PowerShell"    -> truncate(getString(input, "command"), 60);

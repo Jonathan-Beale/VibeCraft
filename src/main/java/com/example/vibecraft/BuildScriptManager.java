@@ -29,6 +29,7 @@ public class BuildScriptManager {
         writePluginScript(projectDir);
     }
 
+    // TODO: Linux code path is dead — investigate or remove
     private void writePluginScript(File projectDir) {
         String name = projectDir.getName();
         String dataDir = serverPluginsDir + name + "\\";

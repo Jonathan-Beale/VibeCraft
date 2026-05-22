@@ -2,6 +2,7 @@
 claude-path: "C:\\Users\\jonat\\AppData\\Roaming\\npm\\claude.cmd"
 
 # Full path to the hermes CLI executable.
+# TODO: replace personal dev path default — /home/brian/... must not be the default hermesPath
 hermes-path: "/home/brian/ai/hermes/.venv/bin/hermes"
 
 # AI provider: 'claude' or 'hermes'
